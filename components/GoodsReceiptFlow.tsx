@@ -1549,9 +1549,9 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
 
       {/* LAGERORT BOTTOM SHEET */}
       {showLagerortSheet && createPortal(
-        <div className="fixed inset-0 z-[100000] flex flex-col justify-end">
+        <div className="fixed inset-0 z-[100000] flex items-end md:items-center justify-center">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => { setShowLagerortSheet(false); setLagerortSheetSearch(''); setShowAddNewLagerort(false); setNewLagerortName(''); }} />
-          <div className={`relative rounded-t-3xl shadow-2xl flex flex-col animate-in slide-in-from-bottom duration-300 ${isDark ? 'bg-slate-900' : 'bg-white'}`} style={{ maxHeight: '85vh' }}>
+          <div className={`relative w-full md:max-w-md rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col animate-in slide-in-from-bottom duration-300 ${isDark ? 'bg-slate-900 md:border md:border-slate-800' : 'bg-white md:border md:border-slate-200'}`} style={{ maxHeight: '85vh', minHeight: '40vh' }}>
             {/* Handle bar */}
             <div className="flex justify-center pt-3 pb-1">
               <div className={`w-10 h-1 rounded-full ${isDark ? 'bg-slate-700' : 'bg-slate-300'}`} />
