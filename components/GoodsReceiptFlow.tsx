@@ -905,8 +905,8 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
             <Package size={24} className="text-[#0077B5]" />
           </div>
           <div>
-            <h2 className="text-xl font-bold">Wareneingang</h2>
-            <div className="text-xs opacity-60">Schritt {step} von 3</div>
+            <h2 className="text-xl md:text-lg font-bold">Wareneingang</h2>
+            <div className="text-xs md:text-[10px] opacity-60">Schritt {step} von 3</div>
           </div>
         </div>
         <button onClick={onClose} className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-slate-800' : 'hover:bg-slate-100'}`}>
@@ -915,7 +915,7 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
       </div>
 
       {/* PROGRESS */}
-      <div className={`px-4 md:px-5 py-3 border-b ${isDark ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50'}`}>
+      <div className={`px-4 md:px-5 py-3 md:py-2 border-b ${isDark ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50'}`}>
         <div className="flex items-center gap-2 max-w-2xl mx-auto">
           {[1, 2, 3].map(s => (
             <div key={s} className={`flex-1 h-1.5 rounded-full transition-all ${s <= step ? 'bg-[#0077B5]' : (isDark ? 'bg-slate-800' : 'bg-slate-200')}`} />
@@ -929,7 +929,7 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
       </div>
 
       {/* CONTENT */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6">
+      <div className="flex-1 overflow-y-auto p-4 md:p-4">
         
         {/* STEP 1 */}
         {step === 1 && (
@@ -1435,20 +1435,21 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
 
         {/* STEP 3 */}
         {step === 3 && (
-          <div className="max-w-3xl mx-auto space-y-6">
-            <div className="text-center space-y-3">
-              <div className={`inline-flex p-4 rounded-full ${globalStats.totalOffen > 0 ? 'bg-amber-100 text-amber-600' : globalStats.totalZuViel > 0 ? 'bg-orange-100 text-orange-600' : 'bg-emerald-100 text-emerald-600'}`}>
-                {globalStats.totalOffen > 0 ? <AlertTriangle size={32}/> : globalStats.totalZuViel > 0 ? <Info size={32}/> : <CheckCircle2 size={32}/>}
+          <div className="max-w-3xl mx-auto space-y-6 md:space-y-3">
+            <div className="text-center space-y-3 md:space-y-1.5">
+              <div className={`inline-flex p-4 md:p-2.5 rounded-full ${globalStats.totalOffen > 0 ? 'bg-amber-100 text-amber-600' : globalStats.totalZuViel > 0 ? 'bg-orange-100 text-orange-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                {globalStats.totalOffen > 0 ? <AlertTriangle size={32} className="md:hidden"/> : globalStats.totalZuViel > 0 ? <Info size={32} className="md:hidden"/> : <CheckCircle2 size={32} className="md:hidden"/>}
+                {globalStats.totalOffen > 0 ? <AlertTriangle size={20} className="hidden md:block"/> : globalStats.totalZuViel > 0 ? <Info size={20} className="hidden md:block"/> : <CheckCircle2 size={20} className="hidden md:block"/>}
               </div>
-              <h3 className="text-2xl font-bold">Zusammenfassung</h3>
-              <div className="text-lg">Status: <span className="font-bold">{headerData.status}</span></div>
+              <h3 className="text-2xl md:text-lg font-bold">Zusammenfassung</h3>
+              <div className="text-lg md:text-sm">Status: <span className="font-bold">{headerData.status}</span></div>
             </div>
 
-            <div className={`grid grid-cols-4 gap-2 p-4 rounded-xl border ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
-              <div className="text-center"><div className="text-xl font-bold text-emerald-600">+{Math.max(0, globalStats.totalBuchung)}</div><div className="text-[9px] uppercase font-bold opacity-50">Zugang</div></div>
-              <div className="text-center"><div className="text-xl font-bold text-red-500">{globalStats.totalZurueck > 0 ? `−${globalStats.totalZurueck}` : '0'}</div><div className="text-[9px] uppercase font-bold opacity-50">Zurück</div></div>
-              <div className="text-center"><div className={`text-xl font-bold ${globalStats.totalOffen > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>{globalStats.totalOffen}</div><div className="text-[9px] uppercase font-bold opacity-50">Offen</div></div>
-              <div className="text-center"><div className={`text-xl font-bold ${globalStats.totalZuViel > 0 ? 'text-orange-500' : 'opacity-30'}`}>{globalStats.totalZuViel > 0 ? `+${globalStats.totalZuViel}` : '0'}</div><div className="text-[9px] uppercase font-bold opacity-50">Zu viel</div></div>
+            <div className={`grid grid-cols-4 gap-2 p-4 md:p-2.5 rounded-xl border ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
+              <div className="text-center"><div className="text-xl md:text-base font-bold text-emerald-600">+{Math.max(0, globalStats.totalBuchung)}</div><div className="text-[9px] uppercase font-bold opacity-50">Zugang</div></div>
+              <div className="text-center"><div className="text-xl md:text-base font-bold text-red-500">{globalStats.totalZurueck > 0 ? `−${globalStats.totalZurueck}` : '0'}</div><div className="text-[9px] uppercase font-bold opacity-50">Zurück</div></div>
+              <div className="text-center"><div className={`text-xl md:text-base font-bold ${globalStats.totalOffen > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>{globalStats.totalOffen}</div><div className="text-[9px] uppercase font-bold opacity-50">Offen</div></div>
+              <div className="text-center"><div className={`text-xl md:text-base font-bold ${globalStats.totalZuViel > 0 ? 'text-orange-500' : 'opacity-30'}`}>{globalStats.totalZuViel > 0 ? `+${globalStats.totalZuViel}` : '0'}</div><div className="text-[9px] uppercase font-bold opacity-50">Zu viel</div></div>
             </div>
 
             {cart.some(c => c.qtyRejected > 0) && (
@@ -1459,7 +1460,7 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
 
             <div className={`rounded-xl border overflow-hidden ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
               <div className={`px-4 py-2.5 border-b text-xs font-bold uppercase tracking-wider ${isDark ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>Positionen</div>
-              <div className="divide-y divide-slate-500/10 max-h-[40vh] overflow-y-auto">
+              <div className="divide-y divide-slate-500/10 max-h-[40vh] md:max-h-[30vh] overflow-y-auto">
                 {cart.map((line, i) => {
                   const lc = getLineCalc(line);
                   const sc = forceClose ? 'gray' : getAutoStatusIcon(line);
