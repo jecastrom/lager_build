@@ -916,12 +916,12 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
 
       {/* PROGRESS */}
       <div className={`px-4 md:px-5 py-3 border-b ${isDark ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50'}`}>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 max-w-2xl mx-auto">
           {[1, 2, 3].map(s => (
             <div key={s} className={`flex-1 h-1.5 rounded-full transition-all ${s <= step ? 'bg-[#0077B5]' : (isDark ? 'bg-slate-800' : 'bg-slate-200')}`} />
           ))}
         </div>
-        <div className="flex justify-between mt-2 text-[10px] uppercase font-bold tracking-wider opacity-60">
+        <div className="flex justify-between mt-2 text-[10px] uppercase font-bold tracking-wider opacity-60 max-w-2xl mx-auto">
           <span>Kopfdaten</span>
           <span>Inspektion</span>
           <span>Prüfung</span>
@@ -997,9 +997,9 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
 
         {/* STEP 2 - INSPECTION */}
         {step === 2 && (
-          <div className="space-y-4">
-            {/* ADD ITEM */}
-            <div className="sticky top-0 z-10 pb-3">
+          <div className="space-y-4 max-w-4xl mx-auto">
+            {/* ADD ITEM - Mobile only */}
+            <div className="sticky top-0 z-10 pb-3 md:hidden">
               <div className="relative">
                 <input
                   ref={searchInputRef}
@@ -1510,23 +1510,23 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
       {/* STICKY FOOTER - PINNED TO BOTTOM */}
       <div className={`sticky bottom-0 z-10 border-t shrink-0 ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}
         style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}>
-        <div className="px-4 md:px-5 pt-3 flex gap-3">
+        <div className="px-4 md:px-5 pt-3 flex gap-3 max-w-4xl mx-auto md:justify-end">
           {step > 1 && (
-            <button onClick={() => { if (initialMode === 'return' && step === 3) { onClose(); } else { setStep(prev => (prev - 1) as any); } }} className="px-5 py-3 rounded-xl font-bold bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 shrink-0">
+            <button onClick={() => { if (initialMode === 'return' && step === 3) { onClose(); } else { setStep(prev => (prev - 1) as any); } }} className="px-5 py-3 md:py-[9px] rounded-xl md:rounded-lg font-bold md:font-semibold text-sm md:text-[13px] bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 shrink-0">
               {initialMode === 'return' && step === 3 ? 'Schließen' : 'Zurück'}
             </button>
           )}
           {step < 3 ? (
             <button onClick={() => setStep(prev => (prev + 1) as any)} disabled={step === 1 ? !headerData.lieferscheinNr : cart.length === 0}
-              className={`flex-1 py-3 rounded-xl font-bold inline-flex items-center justify-center gap-2 transition-all active:scale-[0.97] text-white ${
-                (step === 1 ? headerData.lieferscheinNr : cart.length > 0) ? 'bg-[#0077B5] hover:bg-[#005f8f] shadow-md shadow-blue-500/25' : 'bg-slate-300 dark:bg-slate-700 shadow-none cursor-not-allowed'
+              className={`flex-1 md:flex-none md:px-8 py-3 md:py-[9px] rounded-xl md:rounded-lg font-bold md:font-semibold text-sm md:text-[13px] inline-flex items-center justify-center gap-1.5 transition-all active:scale-[0.97] text-white ${
+                (step === 1 ? headerData.lieferscheinNr : cart.length > 0) ? 'bg-[#0077B5] hover:bg-[#005f8f] shadow-md md:shadow-sm shadow-blue-500/25 md:shadow-blue-500/15' : 'bg-slate-300 dark:bg-slate-700 shadow-none cursor-not-allowed'
               }`}>
-              Weiter <ArrowRight size={16} strokeWidth={2.5} />
+              Weiter <ArrowRight size={15} strokeWidth={2.5} />
             </button>
           ) : (
             <button onClick={() => { setSubmissionStatus('submitting'); setTimeout(() => setSubmissionStatus('success'), 800); }}
-              className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-500 inline-flex items-center justify-center gap-2 transition-all active:scale-[0.97] shadow-md shadow-emerald-500/25">
-              <CheckCircle2 size={16} /> Bestätigen
+              className="flex-1 md:flex-none md:px-8 py-3 md:py-[9px] bg-emerald-600 text-white rounded-xl md:rounded-lg font-bold md:font-semibold text-sm md:text-[13px] hover:bg-emerald-500 inline-flex items-center justify-center gap-1.5 transition-all active:scale-[0.97] shadow-md md:shadow-sm shadow-emerald-500/25 md:shadow-emerald-500/15">
+              <CheckCircle2 size={15} /> Bestätigen
             </button>
           )}
         </div>
