@@ -203,7 +203,7 @@ const OrderStatusBadges = ({ order, linkedReceipt, theme }: { order: PurchaseOrd
         }
     }
 
-    return <div className="status-pill-stack">{badges}</div>;
+    return <div className="status-pill-stack [&>span]:min-w-[130px] [&>span]:justify-center">{badges}</div>;
 };
 
 // Filter Types
