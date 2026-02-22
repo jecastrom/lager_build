@@ -898,33 +898,45 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
         </div>, document.body
       )}
 
-      {/* HEADER */}
-      <div className={`p-4 md:p-5 border-b flex items-center justify-between shrink-0 ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-        <div className="flex items-center gap-3">
-          <div className={`p-2.5 rounded-xl ${isDark ? 'bg-[#0077B5]/20' : 'bg-[#0077B5]/10'}`}>
-            <Package size={24} className="text-[#0077B5]" />
+      {/* HEADER + PROGRESS — merged on desktop */}
+      <div className={`shrink-0 border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+        <div className="p-4 md:px-5 md:py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-3 md:gap-2">
+            <div className={`p-2.5 md:p-1.5 rounded-xl md:rounded-lg ${isDark ? 'bg-[#0077B5]/20' : 'bg-[#0077B5]/10'}`}>
+              <Package size={24} className="text-[#0077B5] md:hidden" />
+              <Package size={16} className="text-[#0077B5] hidden md:block" />
+            </div>
+            <div>
+              <h2 className="text-xl md:text-sm font-bold leading-tight">Wareneingang</h2>
+              <div className="text-xs md:hidden opacity-60">Schritt {step} von 3</div>
+            </div>
           </div>
-          <div>
-            <h2 className="text-xl md:text-lg font-bold">Wareneingang</h2>
-            <div className="text-xs md:text-[10px] opacity-60">Schritt {step} von 3</div>
+          {/* Desktop inline stepper */}
+          <div className="hidden md:flex items-center gap-3 flex-1 max-w-md mx-8">
+            {[{s:1,l:'Kopfdaten'},{s:2,l:'Inspektion'},{s:3,l:'Prüfung'}].map(({s,l}) => (
+              <div key={s} className="flex-1 flex flex-col items-center gap-0.5">
+                <div className={`w-full h-1 rounded-full transition-all ${s <= step ? 'bg-[#0077B5]' : (isDark ? 'bg-slate-800' : 'bg-slate-200')}`} />
+                <span className={`text-[9px] uppercase font-bold tracking-wider ${s <= step ? 'text-[#0077B5]' : 'opacity-40'}`}>{l}</span>
+              </div>
+            ))}
           </div>
+          <button onClick={onClose} className={`p-2 md:p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-slate-800' : 'hover:bg-slate-100'}`}>
+            <X size={24} className="md:hidden" />
+            <X size={18} className="hidden md:block" />
+          </button>
         </div>
-        <button onClick={onClose} className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-slate-800' : 'hover:bg-slate-100'}`}>
-          <X size={24} />
-        </button>
-      </div>
-
-      {/* PROGRESS */}
-      <div className={`px-4 md:px-5 py-3 md:py-2 border-b ${isDark ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50'}`}>
-        <div className="flex items-center gap-2 max-w-2xl mx-auto">
-          {[1, 2, 3].map(s => (
-            <div key={s} className={`flex-1 h-1.5 rounded-full transition-all ${s <= step ? 'bg-[#0077B5]' : (isDark ? 'bg-slate-800' : 'bg-slate-200')}`} />
-          ))}
-        </div>
-        <div className="flex justify-between mt-2 text-[10px] uppercase font-bold tracking-wider opacity-60 max-w-2xl mx-auto">
-          <span>Kopfdaten</span>
-          <span>Inspektion</span>
-          <span>Prüfung</span>
+        {/* Mobile-only progress bar */}
+        <div className={`px-4 py-3 border-t md:hidden ${isDark ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50'}`}>
+          <div className="flex items-center gap-2">
+            {[1, 2, 3].map(s => (
+              <div key={s} className={`flex-1 h-1.5 rounded-full transition-all ${s <= step ? 'bg-[#0077B5]' : (isDark ? 'bg-slate-800' : 'bg-slate-200')}`} />
+            ))}
+          </div>
+          <div className="flex justify-between mt-2 text-[10px] uppercase font-bold tracking-wider opacity-60">
+            <span>Kopfdaten</span>
+            <span>Inspektion</span>
+            <span>Prüfung</span>
+          </div>
         </div>
       </div>
 
