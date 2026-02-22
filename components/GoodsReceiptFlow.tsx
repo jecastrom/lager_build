@@ -499,6 +499,16 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
     return () => window.removeEventListener('resize', h);
   }, []);
 
+  useEffect(() => {
+    if (step !== 2 || cart.length === 0) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') setCardIdx(prev => Math.max(0, prev - 1));
+      if (e.key === 'ArrowRight') setCardIdx(prev => Math.min(cart.length - 1, prev + 1));
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [step, cart.length]);
+
   const addToCart = (item: StockItem) => {
     setCart(prev => [...prev, {
       item, qtyReceived: 1, qtyDamaged: 0, qtyWrong: 0, qtyRejected: 0, qtyAccepted: 1,
@@ -1149,8 +1159,118 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
                     )}
                   </div>
 
-                  {/* Desktop Table View */}
+                  {/* Desktop Carousel View */}
                   <div className="hidden md:block">
+                    <div className={`rounded-2xl p-6 ${isDark ? 'bg-black/20' : 'bg-slate-100/50'}`}>
+                      {/* Progress Bar */}
+                      <div className="flex items-center gap-4 mb-5 max-w-4xl mx-auto">
+                        <div className={`flex-1 h-2 rounded-full overflow-hidden ${isDark ? 'bg-slate-800' : 'bg-slate-300'}`}>
+                          <div className="h-full bg-[#0077B5] rounded-full transition-all duration-500 ease-out" style={{ width: `${((idx + 1) / cart.length) * 100}%` }} />
+                        </div>
+                        <span className="text-lg font-bold opacity-70 shrink-0">Artikel {idx + 1} von {cart.length}</span>
+                      </div>
+
+                      <div className="flex items-stretch gap-4 max-w-4xl mx-auto">
+                        {/* Left Arrow */}
+                        <button onClick={() => setCardIdx(Math.max(0, idx - 1))} disabled={idx === 0}
+                          className={`w-[60px] shrink-0 flex items-center justify-center rounded-2xl transition-all ${idx === 0 ? 'opacity-20 cursor-not-allowed' : isDark ? 'hover:bg-slate-800 hover:shadow-lg hover:shadow-blue-500/10 text-slate-400 hover:text-white' : 'hover:bg-white hover:shadow-lg text-slate-400 hover:text-slate-900'}`}>
+                          <ArrowLeft size={28} />
+                        </button>
+
+                        {/* Card */}
+                        <div key={`desktop-card-${idx}`} className={`flex-1 rounded-2xl border shadow-2xl overflow-hidden animate-in slide-in-from-right-4 duration-300 ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+                          {/* Header */}
+                          <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'border-slate-700' : 'border-slate-100'}`}>
+                            <div>
+                              <div className="font-bold text-lg">{line.item.name}</div>
+                              <div className="text-xs font-mono opacity-50 mt-0.5">{line.item.sku}</div>
+                              {line.item.system && <div className="text-xs opacity-40 mt-0.5">System: {line.item.system}</div>}
+                            </div>
+                            <StatusDot color={forceClose ? 'gray' : statusColor} />
+                          </div>
+
+                          {/* Body — 2 column grid */}
+                          <div className="p-6">
+                            <div className="grid grid-cols-2 gap-x-10 gap-y-4">
+                              {/* Left: Stats */}
+                              <div className="space-y-3">
+                                {linkedPoId && (
+                                  <div className="flex justify-between items-center"><span className={labelClass}>Bestellt</span><span className={valClass}>{c.bestellt}</span></div>
+                                )}
+                                {linkedPoId && c.bisHeute > 0 && (
+                                  <div className="flex justify-between items-center"><span className={labelClass}>Bis heute</span><span className="font-mono text-sm opacity-60">{c.bisHeute}</span></div>
+                                )}
+                                {c.zuViel > 0 && (
+                                  <div className="flex justify-between items-center"><span className="text-[10px] uppercase tracking-wider text-orange-500 font-bold flex items-center gap-1"><AlertTriangle size={12}/> Zu viel</span><span className="font-mono text-sm font-bold text-orange-500">+{c.zuViel}</span></div>
+                                )}
+                                {c.offen > 0 && !forceClose && (
+                                  <div className="flex justify-between items-center"><span className="text-[10px] uppercase tracking-wider text-amber-500 font-bold flex items-center gap-1"><AlertCircle size={12}/> Offen</span><span className="font-mono text-sm font-bold text-amber-500">{c.offen}</span></div>
+                                )}
+                                <div className={`flex justify-between items-center px-3 py-2.5 rounded-lg border ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
+                                  <span className={labelClass}>Buchung</span>
+                                  <span className={`font-mono text-sm font-bold flex items-center gap-1.5 ${c.buchung >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                    <CheckCircle2 size={14}/> {c.buchung >= 0 ? '+' : ''}{c.buchung}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Right: Quantity pickers */}
+                              <div className="space-y-3">
+                                <div className="flex justify-between items-center gap-3">
+                                  <span className={labelClass}>Heute geliefert</span>
+                                  <PlusMinusPicker value={line.qtyReceived} onChange={v => updateCartItem(idx, 'qtyReceived', v)} disabled={isAdminClose} isDark={isDark} />
+                                </div>
+                                <div className="flex justify-between items-center gap-3">
+                                  <span className={`text-[10px] uppercase tracking-wider flex items-center gap-1 ${line.qtyDamaged > 0 ? 'text-red-500 font-bold' : (isDark ? 'text-slate-500' : 'text-slate-400')}`}><AlertTriangle size={12}/> Beschädigt</span>
+                                  <PlusMinusPicker value={line.qtyDamaged} onChange={v => updateCartItem(idx, 'qtyDamaged', v)} max={line.qtyReceived} disabled={isAdminClose} isDark={isDark} />
+                                </div>
+                                <div className="flex justify-between items-center gap-3">
+                                  <span className={`text-[10px] uppercase tracking-wider flex items-center gap-1 ${line.qtyWrong > 0 ? 'text-orange-500 font-bold' : (isDark ? 'text-slate-500' : 'text-slate-400')}`}><XCircle size={12}/> Falsch geliefert</span>
+                                  <PlusMinusPicker value={line.qtyWrong} onChange={v => updateCartItem(idx, 'qtyWrong', v)} max={line.qtyReceived - line.qtyDamaged} disabled={isAdminClose} isDark={isDark} />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Actions row */}
+                          <div className={`px-6 py-3 border-t flex items-center gap-2 flex-wrap ${isDark ? 'border-slate-700' : 'border-slate-100'}`}>
+                            {showReturnBtn && (
+                              <button onClick={() => setReturnPopup({ idx, qty: c.zuViel > 0 ? c.zuViel : line.qtyRejected, reason: line.qtyDamaged > 0 ? 'Beschädigt' : line.qtyWrong > 0 ? 'Falsch geliefert' : 'Überzahl', carrier: '', tracking: '' })}
+                                className={`text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${isDark ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30' : 'bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100'}`}>
+                                <RotateCcw size={12}/> Rücksendung
+                              </button>
+                            )}
+                            {(line.qtyDamaged > 0 || line.qtyWrong > 0) && (
+                              <button onClick={() => { updateCartItem(idx, 'qtyDamaged', 0); updateCartItem(idx, 'qtyWrong', 0); }}
+                                className={`text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 ${isDark ? 'bg-amber-500/20 text-amber-400' : 'bg-amber-100 text-amber-700'}`}>
+                                <AlertCircle size={12}/> Zurücksetzen
+                              </button>
+                            )}
+                            <button onClick={() => updateCartItem(idx, 'showIssuePanel', !line.showIssuePanel)}
+                              className={`text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ml-auto ${line.showIssuePanel ? (isDark ? 'bg-amber-500/20 text-amber-400' : 'bg-amber-100 text-amber-700') : (isDark ? 'text-slate-400 hover:text-slate-300 hover:bg-slate-800' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100')}`}>
+                              <AlertCircle size={12}/> {line.showIssuePanel ? 'Schließen' : 'Problem'}
+                            </button>
+                          </div>
+
+                          {/* Issue Notes */}
+                          {(line.qtyDamaged > 0 || line.qtyWrong > 0 || line.showIssuePanel) && (
+                            <div className={`px-6 py-4 border-t animate-in slide-in-from-top-2 ${isDark ? 'bg-black/20 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
+                              <input value={line.rejectionNotes} onChange={e => updateCartItem(idx, 'rejectionNotes', e.target.value)} placeholder="Notiz zum Problem..." className={`${inputClass} text-base`} />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Right Arrow */}
+                        <button onClick={() => setCardIdx(Math.min(cart.length - 1, idx + 1))} disabled={idx >= cart.length - 1}
+                          className={`w-[60px] shrink-0 flex items-center justify-center rounded-2xl transition-all ${idx >= cart.length - 1 ? 'opacity-20 cursor-not-allowed' : isDark ? 'hover:bg-slate-800 hover:shadow-lg hover:shadow-blue-500/10 text-slate-400 hover:text-white' : 'hover:bg-white hover:shadow-lg text-slate-400 hover:text-slate-900'}`}>
+                          <ArrowRight size={28} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Desktop Table View (Legacy — hidden) */}
+                  <div className="hidden">
                     <div className={`rounded-xl border overflow-hidden ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
                       <div className="overflow-x-auto max-h-[calc(100vh-340px)] overflow-y-auto">
                         <table className="w-full">
