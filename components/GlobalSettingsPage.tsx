@@ -3,7 +3,8 @@ import { Theme, ActiveModule, AuditEntry } from '../types';
 import { 
   ArrowLeft, Shield, Sparkles, Calendar, Ticket, List,
   AlertTriangle, PlusCircle, AlertCircle, Ban, ChevronDown, ChevronUp,
-  Info, Clock, FileText, Eye, Lock
+  Info, Clock, FileText, Eye, Lock, MapPin, GripVertical, 
+  Pencil, Trash2, Plus, Check, X, ArrowUp, ArrowDown
 } from 'lucide-react';
 import { TicketConfig, TimelineConfig } from './SettingsPage';
 import { MessageSquare } from 'lucide-react';
@@ -27,6 +28,9 @@ interface GlobalSettingsPageProps {
   onSetTimelineConfig: (config: TimelineConfig) => void;
   // Audit Trail
   auditTrail?: AuditEntry[];
+  // Lagerorte
+  lagerortOptions: string[];
+  onSetLagerortOptions: (opts: string[]) => void;
 }
 
 export const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({
@@ -42,12 +46,21 @@ export const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({
   onSetTicketConfig,
   timelineConfig,
   onSetTimelineConfig,
-  auditTrail = []
+  auditTrail = [],
+  lagerortOptions,
+  onSetLagerortOptions
 }) => {
   const isDark = theme === 'dark';
   const [isTicketConfigOpen, setIsTicketConfigOpen] = useState(false);
   const [isTimelineConfigOpen, setIsTimelineConfigOpen] = useState(false);
   const [isAuditOpen, setIsAuditOpen] = useState(false);
+  const [isLagerorteOpen, setIsLagerorteOpen] = useState(false);
+  const [editingLagerortIdx, setEditingLagerortIdx] = useState<number | null>(null);
+  const [editingLagerortVal, setEditingLagerortVal] = useState('');
+  const [newLagerortVal, setNewLagerortVal] = useState('');
+  const [showAddLagerort, setShowAddLagerort] = useState(false);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
   // ── Reusable Sub-Components ──
 
@@ -383,7 +396,232 @@ export const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({
       </div>
 
       {/* ═══════════════════════════════════════════════════════
-          CATEGORY 4: AUDIT TRAIL
+          CATEGORY 4: LAGERORTE VERWALTUNG
+          ═══════════════════════════════════════════════════════ */}
+      <div className={`rounded-2xl border overflow-hidden mb-6 ${
+        isDark ? 'bg-slate-900/50 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
+      }`}>
+        <button
+          onClick={() => setIsLagerorteOpen(!isLagerorteOpen)}
+          className={`w-full transition-colors ${isDark ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50'}`}
+        >
+          <div className={`px-6 py-3 flex items-center justify-between ${
+            isDark ? 'bg-purple-500/5' : 'bg-purple-500/5'
+          } ${isLagerorteOpen ? 'border-b ' + (isDark ? 'border-slate-800' : 'border-slate-200') : ''}`}>
+            <div className="flex items-center gap-3">
+              <div className={`p-1.5 rounded-lg ${isDark ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-500/10 text-purple-600'}`}>
+                <MapPin size={16} />
+              </div>
+              <div className="text-left">
+                <span className={`text-xs font-bold uppercase tracking-wider block ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                  Lagerorte verwalten
+                </span>
+                <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                  Hinzufügen, bearbeiten, löschen und Reihenfolge anpassen
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                isDark ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-500/10 text-purple-600'
+              }`}>
+                {lagerortOptions.length} Orte
+              </span>
+              {isLagerorteOpen
+                ? <ChevronUp size={16} className="text-slate-400" />
+                : <ChevronDown size={16} className="text-slate-400" />
+              }
+            </div>
+          </div>
+        </button>
+
+        {isLagerorteOpen && (
+          <div>
+            <div className={`mx-4 mt-4 mb-3 p-3 rounded-xl border text-xs ${
+              isDark ? 'border-slate-700 text-slate-400 bg-slate-800/50' : 'border-slate-200 text-slate-600 bg-slate-50'
+            }`}>
+              <div className="flex gap-3">
+                <Info size={16} className="shrink-0 mt-0.5 text-purple-500" />
+                <p>
+                  Ordnen Sie die am häufigsten genutzten Lagerorte nach oben. Auf Desktop können Sie per Drag & Drop sortieren, auf Mobil mit den Pfeiltasten.
+                </p>
+              </div>
+            </div>
+
+            {/* Lagerort List */}
+            <div className="max-h-[50vh] overflow-y-auto">
+              {lagerortOptions.map((opt, idx) => (
+                <div
+                  key={`${opt}-${idx}`}
+                  draggable
+                  onDragStart={() => setDragIdx(idx)}
+                  onDragOver={(e) => { e.preventDefault(); setDragOverIdx(idx); }}
+                  onDragLeave={() => setDragOverIdx(null)}
+                  onDrop={() => {
+                    if (dragIdx !== null && dragIdx !== idx) {
+                      const updated = [...lagerortOptions];
+                      const [moved] = updated.splice(dragIdx, 1);
+                      updated.splice(idx, 0, moved);
+                      onSetLagerortOptions(updated);
+                    }
+                    setDragIdx(null);
+                    setDragOverIdx(null);
+                  }}
+                  onDragEnd={() => { setDragIdx(null); setDragOverIdx(null); }}
+                  className={`flex items-center gap-2 px-4 py-2.5 border-b transition-all ${
+                    isDark ? 'border-slate-800' : 'border-slate-100'
+                  } ${dragOverIdx === idx ? (isDark ? 'bg-purple-500/10 border-purple-500/30' : 'bg-purple-50 border-purple-200') : ''
+                  } ${dragIdx === idx ? 'opacity-40' : ''}`}
+                >
+                  {/* Drag Handle */}
+                  <div className={`cursor-grab active:cursor-grabbing p-1 rounded ${isDark ? 'text-slate-600 hover:text-slate-400' : 'text-slate-300 hover:text-slate-500'}`}>
+                    <GripVertical size={16} />
+                  </div>
+
+                  {/* Position Number */}
+                  <span className={`text-[10px] font-mono font-bold w-5 text-center shrink-0 ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>{idx + 1}</span>
+
+                  {/* Name (editable) */}
+                  {editingLagerortIdx === idx ? (
+                    <div className="flex-1 flex items-center gap-1.5">
+                      <input
+                        type="text"
+                        value={editingLagerortVal}
+                        onChange={(e) => setEditingLagerortVal(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && editingLagerortVal.trim()) {
+                            const updated = [...lagerortOptions];
+                            updated[idx] = editingLagerortVal.trim();
+                            onSetLagerortOptions(updated);
+                            setEditingLagerortIdx(null);
+                          }
+                          if (e.key === 'Escape') setEditingLagerortIdx(null);
+                        }}
+                        className={`flex-1 px-2 py-1 rounded-lg border text-sm outline-none ${
+                          isDark ? 'bg-slate-800 border-slate-600 text-white focus:border-purple-500' : 'bg-white border-slate-300 focus:border-purple-500'
+                        }`}
+                        autoFocus
+                      />
+                      <button onClick={() => {
+                        if (editingLagerortVal.trim()) {
+                          const updated = [...lagerortOptions];
+                          updated[idx] = editingLagerortVal.trim();
+                          onSetLagerortOptions(updated);
+                        }
+                        setEditingLagerortIdx(null);
+                      }} className="p-1 rounded text-emerald-500 hover:bg-emerald-500/10"><Check size={14} /></button>
+                      <button onClick={() => setEditingLagerortIdx(null)} className={`p-1 rounded ${isDark ? 'text-slate-500 hover:bg-slate-800' : 'text-slate-400 hover:bg-slate-100'}`}><X size={14} /></button>
+                    </div>
+                  ) : (
+                    <span className={`flex-1 text-sm truncate ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{opt}</span>
+                  )}
+
+                  {/* Action Buttons */}
+                  {editingLagerortIdx !== idx && (
+                    <div className="flex items-center gap-0.5 shrink-0">
+                      {/* Mobile Up/Down */}
+                      <button
+                        onClick={() => {
+                          if (idx > 0) {
+                            const updated = [...lagerortOptions];
+                            [updated[idx - 1], updated[idx]] = [updated[idx], updated[idx - 1]];
+                            onSetLagerortOptions(updated);
+                          }
+                        }}
+                        disabled={idx === 0}
+                        className={`md:hidden p-1.5 rounded transition-colors ${idx === 0 ? 'opacity-20' : isDark ? 'text-slate-500 hover:bg-slate-800 hover:text-slate-300' : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'}`}
+                      ><ArrowUp size={14} /></button>
+                      <button
+                        onClick={() => {
+                          if (idx < lagerortOptions.length - 1) {
+                            const updated = [...lagerortOptions];
+                            [updated[idx], updated[idx + 1]] = [updated[idx + 1], updated[idx]];
+                            onSetLagerortOptions(updated);
+                          }
+                        }}
+                        disabled={idx === lagerortOptions.length - 1}
+                        className={`md:hidden p-1.5 rounded transition-colors ${idx === lagerortOptions.length - 1 ? 'opacity-20' : isDark ? 'text-slate-500 hover:bg-slate-800 hover:text-slate-300' : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'}`}
+                      ><ArrowDown size={14} /></button>
+
+                      {/* Edit */}
+                      <button
+                        onClick={() => { setEditingLagerortIdx(idx); setEditingLagerortVal(opt); }}
+                        className={`p-1.5 rounded transition-colors ${isDark ? 'text-slate-500 hover:bg-slate-800 hover:text-blue-400' : 'text-slate-400 hover:bg-slate-100 hover:text-blue-600'}`}
+                      ><Pencil size={14} /></button>
+
+                      {/* Delete */}
+                      <button
+                        onClick={() => {
+                          const updated = lagerortOptions.filter((_, i) => i !== idx);
+                          onSetLagerortOptions(updated);
+                        }}
+                        className={`p-1.5 rounded transition-colors ${isDark ? 'text-slate-500 hover:bg-red-500/10 hover:text-red-400' : 'text-slate-400 hover:bg-red-50 hover:text-red-600'}`}
+                      ><Trash2 size={14} /></button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Add New */}
+            <div className={`p-4 border-t ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+              {!showAddLagerort ? (
+                <button
+                  onClick={() => setShowAddLagerort(true)}
+                  className={`w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 border transition-colors ${
+                    isDark ? 'border-slate-700 hover:bg-slate-800 text-purple-400' : 'border-slate-200 hover:bg-slate-50 text-purple-600'
+                  }`}
+                >
+                  <Plus size={16} /> Neuer Lagerort
+                </button>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newLagerortVal}
+                    onChange={(e) => setNewLagerortVal(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && newLagerortVal.trim()) {
+                        onSetLagerortOptions([...lagerortOptions, newLagerortVal.trim()]);
+                        setNewLagerortVal('');
+                        setShowAddLagerort(false);
+                      }
+                      if (e.key === 'Escape') { setShowAddLagerort(false); setNewLagerortVal(''); }
+                    }}
+                    placeholder="Name des Lagerorts..."
+                    className={`flex-1 px-3 py-2.5 rounded-xl border text-sm outline-none ${
+                      isDark ? 'bg-slate-800 border-slate-700 text-white focus:border-purple-500' : 'bg-white border-slate-300 focus:border-purple-500'
+                    }`}
+                    autoFocus
+                  />
+                  <button
+                    onClick={() => {
+                      if (newLagerortVal.trim()) {
+                        onSetLagerortOptions([...lagerortOptions, newLagerortVal.trim()]);
+                        setNewLagerortVal('');
+                        setShowAddLagerort(false);
+                      }
+                    }}
+                    disabled={!newLagerortVal.trim()}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-xl text-sm font-bold disabled:opacity-50 hover:bg-purple-500"
+                  >
+                    <Check size={16} />
+                  </button>
+                  <button
+                    onClick={() => { setShowAddLagerort(false); setNewLagerortVal(''); }}
+                    className={`px-3 py-2 rounded-xl text-sm ${isDark ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════
+          CATEGORY 5: AUDIT TRAIL
           ═══════════════════════════════════════════════════════ */}
       <div className={`rounded-2xl border overflow-hidden mb-6 ${
         isDark ? 'bg-slate-900/50 border-slate-800' : 'bg-white border-slate-200 shadow-sm'

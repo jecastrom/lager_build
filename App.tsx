@@ -166,6 +166,25 @@ export default function App() {
     }
     return { missing: true, extra: true, damage: true, wrong: true, rejected: true };
   });
+
+  // Lagerort Options (managed in Global Settings)
+  const DEFAULT_LAGERORT_OPTIONS: string[] = [
+    "Akku Service","Brandt, Service, B DI 446E","Dallmann, Service","EKZFK","GERAS","HaB","HAB",
+    "HaB Altbestand Kunde","HLU","HTW","KEH","Kitas","Koplin, Service, B DI 243","KWF",
+    "Lavrenz, Service","LHW","MPC","Pfefferwerk/WAB","RAS_Zubehör","RBB","RBB_SSP",
+    "Stöwhaas,Service","Tau13","Trittel, Service","ukb","UKB Lager","UKB Service","Wartungsklebchen"
+  ];
+  const [lagerortOptions, setLagerortOptions] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('lagerortOptions');
+      if (saved) return JSON.parse(saved);
+    }
+    return DEFAULT_LAGERORT_OPTIONS;
+  });
+  const handleSetLagerortOptions = (opts: string[]) => {
+    setLagerortOptions(opts);
+    localStorage.setItem('lagerortOptions', JSON.stringify(opts));
+  };
   
   // Data State
   const [inventory, setInventory] = useState<StockItem[]>(MOCK_ITEMS);
@@ -1321,6 +1340,8 @@ export default function App() {
                     existingItems={inventory}
                     onClose={() => handleNavigation('receipt-management')}
                     onSuccess={handleReceiptSuccess}
+                    lagerortOptions={lagerortOptions}
+                    onUpdateLagerortOptions={handleSetLagerortOptions}
                     // onLogStock removed to prevent double logging - handled in onSuccess
                     purchaseOrders={purchaseOrders}
                     initialPoId={selectedPoId}
@@ -1425,6 +1446,8 @@ export default function App() {
                     timelineConfig={timelineConfig}
                     onSetTimelineConfig={handleSetTimelineConfig}
                     auditTrail={auditTrail}
+                    lagerortOptions={lagerortOptions}
+                    onSetLagerortOptions={handleSetLagerortOptions}
                   />
                 )}
 

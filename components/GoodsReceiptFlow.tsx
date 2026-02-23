@@ -377,11 +377,14 @@ interface GoodsReceiptFlowProps {
   receiptMasters?: ReceiptMaster[];
   ticketConfig: TicketConfig;
   onAddTicket: (ticket: Ticket) => void;
+  lagerortOptions?: string[];
+  onUpdateLagerortOptions?: (opts: string[]) => void;
 }
 
 export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
   theme, existingItems, onClose, onSuccess, onLogStock, purchaseOrders,
-  initialPoId, initialMode = 'standard', receiptMasters = [], ticketConfig, onAddTicket
+  initialPoId, initialMode = 'standard', receiptMasters = [], ticketConfig, onAddTicket,
+  lagerortOptions: externalLagerortOptions, onUpdateLagerortOptions
 }) => {
   const isDark = theme === 'dark';
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -408,7 +411,7 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [lagerortOptions, setLagerortOptions] = useState<string[]>(LAGERORT_OPTIONS);
+  const [lagerortOptions, setLagerortOptions] = useState<string[]>(externalLagerortOptions || LAGERORT_OPTIONS);
   const [returnPopup, setReturnPopup] = useState<ReturnPopupData | null>(null);
   const [cardIdx, setCardIdx] = useState(0);
   const [returnAutoAdvancing, setReturnAutoAdvancing] = useState(false);
@@ -1630,7 +1633,9 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
                     onChange={(e) => setNewLagerortName(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && newLagerortName.trim()) {
-                        setLagerortOptions(prev => [...prev, newLagerortName.trim()]);
+                        const updated = [...lagerortOptions, newLagerortName.trim()];
+                        setLagerortOptions(updated);
+                        if (onUpdateLagerortOptions) onUpdateLagerortOptions(updated);
                         setHeaderData(prev => ({ ...prev, warehouseLocation: newLagerortName.trim() }));
                         setNewLagerortName('');
                         setShowAddNewLagerort(false);
