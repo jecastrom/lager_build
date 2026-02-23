@@ -1070,6 +1070,7 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
                         <div className="flex-1 min-w-0 mr-3">
                           <div className="font-bold text-sm truncate">{line.item.name}</div>
                           <div className="text-[10px] font-mono opacity-50">{line.item.sku}</div>
+                          {line.item.system && <div className="text-[10px] opacity-40 mt-0.5">System: {line.item.system}</div>}
                         </div>
                         <StatusDot color={forceClose ? 'gray' : statusColor} />
                       </div>
