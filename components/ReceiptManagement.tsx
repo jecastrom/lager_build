@@ -1772,85 +1772,129 @@ export const ReceiptManagement: React.FC<ReceiptManagementProps> = ({
 
                         {linkedPO && linkedMaster ? (
                             <>
-                                {/* DISTINCT SUMMARY SECTION */}
-                                <div className={`rounded-2xl border overflow-hidden shadow-lg ${
-                                    isDark ? 'bg-[#1f2937] border-slate-700' : 'bg-white border-slate-300'
-                                }`}>
-                                    <div className={`p-4 border-b font-bold flex items-center gap-2 ${
-                                        isDark ? 'bg-[#1f2937] border-slate-700 text-slate-200' : 'bg-slate-50 border-slate-300 text-slate-700'
-                                    }`}>
-                                        <BarChart3 size={18} className="text-[#0077B5]" /> Bestell-Status (Gesamtübersicht)
-                                    </div>
-                                    {/* VERTICAL CARD LAYOUT - NO HORIZONTAL SCROLL */}
-                                    <div className="divide-y divide-slate-500/10">
-                                        {linkedPO.items.map(poItem => {
-                                            const ordered = poItem.quantityExpected;
-                                            const received = poItem.quantityReceived;
-                                            const pending = Math.max(0, ordered - received);
-                                            const over = Math.max(0, received - ordered);
-                                            let totalDamaged = 0;
-                                            let totalWrong = 0;
-                                            linkedMaster.deliveries.filter(d => !d.isStorniert).forEach(d => {
-                                              const di = d.items.find(x => x.sku === poItem.sku);
-                                              if (di && di.quantityRejected > 0) {
-                                                if (di.damageFlag || di.rejectionReason === 'Damaged') totalDamaged += di.quantityRejected;
-                                                else if (di.rejectionReason === 'Wrong') totalWrong += di.quantityRejected;
-                                              }
-                                            });
-                                            const hasIssues = totalDamaged > 0 || totalWrong > 0 || linkedMaster.deliveries.some(d => !d.isStorniert && d.items.some(di => di.sku === poItem.sku && di.damageFlag));
-                                            const isProject = linkedPO.status === 'Projekt';
-                                            const isMasterClosed = linkedMaster?.status === 'Gebucht' || linkedMaster?.status === 'Abgeschlossen';
-                                            const stockItem = findStockItemBySku(poItem.sku);
-                                            
-                                            return (
-                                                <div key={poItem.sku} className="p-4 space-y-2">
-                                                    <div className="flex items-center justify-between gap-3">
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="font-bold text-sm truncate">{poItem.name}</div>
-                                                            <div className="text-[10px] font-mono opacity-50">{poItem.sku}</div>
-                                                            {stockItem?.system && <div className="text-[10px] opacity-40 mt-0.5">System: {stockItem.system}</div>}
-                                                        </div>
-                                                        {renderItemStatusIconForPO(ordered, received, hasIssues, linkedPO.isForceClosed, isProject, isMasterClosed)}
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                                                        <div className="flex justify-between items-baseline">
-                                                            <span className={`text-[10px] uppercase font-bold tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Bestellt</span>
-                                                            <span className="font-mono font-bold opacity-70 md:text-lg">{ordered}</span>
-                                                        </div>
-                                                        <div className="flex justify-between items-baseline">
-                                                            <span className={`text-[10px] uppercase font-bold tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Geliefert</span>
-                                                            <span className="font-mono font-bold md:text-lg">{received}</span>
-                                                        </div>
-                                                        {pending > 0 && (
-                                                            <div className="flex justify-between items-baseline">
-                                                                <span className="text-[10px] uppercase font-bold tracking-wider text-amber-500 flex items-center gap-1"><AlertTriangle size={10}/> Offen</span>
-                                                                <span className="font-mono font-bold text-amber-500 md:text-lg">{linkedPO.isForceClosed ? <span className="line-through text-slate-400">{pending}</span> : pending}</span>
+                                {/* AGGREGATE SUMMARY DASHBOARD */}
+                                {(() => {
+                                    // Compute aggregates across all deliveries
+                                    const positionen = linkedPO.items.length;
+                                    const totalBestellt = linkedPO.items.reduce((s, i) => s + i.quantityExpected, 0);
+                                    let totalGeliefert = 0;
+                                    let totalDamaged = 0;
+                                    let totalWrong = 0;
+                                    let totalOffen = 0;
+                                    let totalZuViel = 0;
+                                    let totalReturned = 0;
+
+                                    linkedPO.items.forEach(poItem => {
+                                        let accepted = 0;
+                                        let damaged = 0;
+                                        let wrong = 0;
+                                        let returned = 0;
+                                        linkedMaster.deliveries.filter(d => !d.isStorniert).forEach(d => {
+                                            const di = d.items.find(x => x.sku === poItem.sku);
+                                            if (di) {
+                                                accepted += di.quantityAccepted;
+                                                if (di.quantityRejected > 0) {
+                                                    if (di.damageFlag || di.rejectionReason === 'Damaged') damaged += di.quantityRejected;
+                                                    else if (di.rejectionReason === 'Wrong') wrong += di.quantityRejected;
+                                                    if (di.returnCarrier || di.returnTrackingId) returned += di.quantityRejected;
+                                                }
+                                            }
+                                        });
+                                        totalGeliefert += accepted;
+                                        totalDamaged += damaged;
+                                        totalWrong += wrong;
+                                        totalReturned += returned;
+                                        totalOffen += Math.max(0, poItem.quantityExpected - accepted);
+                                        totalZuViel += Math.max(0, accepted - poItem.quantityExpected);
+                                    });
+
+                                    const pct = totalBestellt > 0 ? Math.min(100, Math.round((totalGeliefert / totalBestellt) * 100)) : 0;
+                                    const isComplete = pct >= 100;
+                                    const hasIssues = totalDamaged > 0 || totalWrong > 0;
+                                    const barColor = hasIssues ? (isDark ? 'bg-amber-500' : 'bg-amber-500') : isComplete ? (isDark ? 'bg-emerald-500' : 'bg-emerald-500') : 'bg-[#0077B5]';
+
+                                    const issueItems: Array<{ label: string; value: number; color: string; icon: React.ReactNode }> = [];
+                                    if (totalOffen > 0 && !linkedPO.isForceClosed) issueItems.push({ label: 'Offen', value: totalOffen, color: 'text-amber-500', icon: <Clock size={14} className="text-amber-500" /> });
+                                    if (totalOffen > 0 && linkedPO.isForceClosed) issueItems.push({ label: 'Offen (geschlossen)', value: totalOffen, color: 'text-slate-400 line-through', icon: <CheckCircle2 size={14} className="text-slate-400" /> });
+                                    if (totalDamaged > 0) issueItems.push({ label: 'Beschädigt', value: totalDamaged, color: 'text-red-500', icon: <AlertTriangle size={14} className="text-red-500" /> });
+                                    if (totalWrong > 0) issueItems.push({ label: 'Falsch', value: totalWrong, color: 'text-orange-500', icon: <XCircle size={14} className="text-orange-500" /> });
+                                    if (totalZuViel > 0) issueItems.push({ label: 'Zu viel', value: totalZuViel, color: 'text-orange-400', icon: <ChevronsUp size={14} className="text-orange-400" /> });
+                                    if (totalReturned > 0) issueItems.push({ label: 'Zurückgesendet', value: totalReturned, color: 'text-purple-500', icon: <RotateCcw size={14} className="text-purple-500" /> });
+
+                                    return (
+                                        <div className={`rounded-2xl border overflow-hidden shadow-lg ${
+                                            isDark ? 'bg-[#1f2937] border-slate-700' : 'bg-white border-slate-300'
+                                        }`}>
+                                            {/* Header */}
+                                            <div className={`px-4 py-3 border-b flex items-center gap-2 ${
+                                                isDark ? 'bg-[#1f2937] border-slate-700 text-slate-200' : 'bg-slate-50 border-slate-300 text-slate-700'
+                                            }`}>
+                                                <BarChart3 size={18} className="text-[#0077B5]" />
+                                                <span className="font-bold">Gesamtübersicht</span>
+                                            </div>
+
+                                            {/* Row 1: Scope Stats */}
+                                            <div className={`grid grid-cols-3 divide-x ${isDark ? 'divide-slate-700' : 'divide-slate-200'}`}>
+                                                <div className="px-4 py-3 text-center">
+                                                    <div className={`text-[10px] uppercase font-bold tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Positionen</div>
+                                                    <div className="text-2xl font-bold font-mono">{positionen}</div>
+                                                </div>
+                                                <div className="px-4 py-3 text-center">
+                                                    <div className={`text-[10px] uppercase font-bold tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Bestellt</div>
+                                                    <div className="text-2xl font-bold font-mono">{totalBestellt}</div>
+                                                </div>
+                                                <div className="px-4 py-3 text-center">
+                                                    <div className={`text-[10px] uppercase font-bold tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Geliefert</div>
+                                                    <div className={`text-2xl font-bold font-mono ${isComplete && !hasIssues ? 'text-emerald-500' : ''}`}>{totalGeliefert}</div>
+                                                </div>
+                                            </div>
+
+                                            {/* Row 2: Progress Bar */}
+                                            <div className={`px-4 py-3 border-t ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+                                                <div className="flex items-center justify-between mb-1.5">
+                                                    <span className={`text-[10px] uppercase font-bold tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Fortschritt</span>
+                                                    <span className={`text-xs font-bold font-mono ${isComplete && !hasIssues ? 'text-emerald-500' : hasIssues ? 'text-amber-500' : 'text-[#0077B5]'}`}>
+                                                        {totalGeliefert} / {totalBestellt} — {pct}%
+                                                    </span>
+                                                </div>
+                                                <div className={`h-2.5 rounded-full overflow-hidden ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}>
+                                                    <div
+                                                        className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+                                                        style={{ width: `${Math.min(100, pct)}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Row 3: Issues (only if any) */}
+                                            {issueItems.length > 0 && (
+                                                <div className={`px-4 py-3 border-t ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+                                                    <div className={`text-[10px] uppercase font-bold tracking-wider mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Abweichungen</div>
+                                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                                        {issueItems.map(issue => (
+                                                            <div key={issue.label} className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${
+                                                                isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-200'
+                                                            }`}>
+                                                                {issue.icon}
+                                                                <div className="min-w-0">
+                                                                    <div className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{issue.label}</div>
+                                                                    <div className={`text-lg font-bold font-mono leading-tight ${issue.color}`}>{issue.value}</div>
+                                                                </div>
                                                             </div>
-                                                        )}
-                                                        {over > 0 && (
-                                                            <div className="flex justify-between">
-                                                                <span className="text-[10px] uppercase font-bold tracking-wider text-orange-500 flex items-center gap-1"><AlertTriangle size={10}/> Zu viel</span>
-                                                                <span className="font-mono font-bold text-orange-500">+{over}</span>
-                                                            </div>
-                                                        )}
-                                                        {totalDamaged > 0 && (
-                                                            <div className="flex justify-between">
-                                                                <span className="text-[10px] uppercase font-bold tracking-wider text-red-500 flex items-center gap-1"><AlertTriangle size={10}/> Beschädigt</span>
-                                                                <span className="font-mono font-bold text-red-500">{totalDamaged}</span>
-                                                            </div>
-                                                        )}
-                                                        {totalWrong > 0 && (
-                                                            <div className="flex justify-between">
-                                                                <span className="text-[10px] uppercase font-bold tracking-wider text-amber-500 flex items-center gap-1"><XCircle size={10}/> Falsch</span>
-                                                                <span className="font-mono font-bold text-amber-500">{totalWrong}</span>
-                                                            </div>
-                                                        )}
+                                                        ))}
                                                     </div>
                                                 </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
+                                            )}
+
+                                            {/* All clear badge */}
+                                            {issueItems.length === 0 && isComplete && (
+                                                <div className={`px-4 py-3 border-t flex items-center justify-center gap-2 ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+                                                    <CheckCircle2 size={16} className="text-emerald-500" />
+                                                    <span className={`text-sm font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>Vollständig geliefert — keine Abweichungen</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
 
                                 <div>
                                     <div className="flex items-center gap-2 mb-4 px-1">
