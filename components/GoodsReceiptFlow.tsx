@@ -6,7 +6,7 @@ import {
   ArrowRight, ArrowLeft, Trash2, MapPin, FileText, Building2,
   AlertTriangle, Loader2, Home, ClipboardList, Ban, LogOut, 
   PlusCircle, Clock, Box, ChevronUp, Briefcase, Minus, XCircle,
-  ShieldBan, Layers, RotateCcw, BarChart3, ChevronsUp, ChevronsDown
+  ShieldBan, Layers, RotateCcw, BarChart3, ChevronsUp, ChevronsDown, Copy, Tag
 } from 'lucide-react';
 import { StockItem, Theme, ReceiptHeader, PurchaseOrder, ReceiptMaster, Ticket } from '../types';
 import { MOCK_PURCHASE_ORDERS } from '../data';
@@ -999,6 +999,17 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
                     <span className="font-mono font-bold">{linkedPoId}</span>
                   </div>
                   <div className="text-xs opacity-60 mt-1">{headerData.lieferant}</div>
+                  {(() => { const po = purchaseOrders?.find(p => p.id === linkedPoId); return po?.externalRefs && po.externalRefs.length > 0 ? (
+                    <div className={`mt-2 pt-2 border-t space-y-0.5 ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+                      {po.externalRefs.map((ref, ri) => (
+                        <div key={ri} className="flex items-center gap-1.5 text-[11px]">
+                          <Tag size={10} className="opacity-40 shrink-0" />
+                          <span className="opacity-50">{ref.label}:</span>
+                          <span className="font-mono font-bold opacity-80">{ref.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null; })()}
                 </div>
               ) : (
                 <button onClick={() => setShowPoModal(true)} className="w-full px-4 py-3 rounded-xl font-bold border-2 border-dashed transition-all hover:border-[#0077B5] hover:bg-[#0077B5]/5 dark:border-slate-700 dark:hover:border-blue-500 dark:hover:bg-blue-500/10">

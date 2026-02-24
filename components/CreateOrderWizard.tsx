@@ -170,6 +170,17 @@ export const CreateOrderWizard: React.FC<CreateOrderWizardProps> = ({
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [formData, setFormData] = useState<OrderFormData>({ orderId: '', supplier: '', orderDate: new Date().toISOString().split('T')[0], expectedDeliveryDate: '', poType: null });
+  const [externalRefs, setExternalRefs] = useState<Array<{ label: string; value: string }>>(initialOrder?.externalRefs || []);
+  const [showExternalRefs, setShowExternalRefs] = useState((initialOrder?.externalRefs?.length || 0) > 0);
+  const [refLabelSuggestions] = useState<string[]>(() => {
+    const labels = new Set<string>();
+    // Collect previously used labels from all orders for autocomplete
+    if (typeof window !== 'undefined') {
+      try { const stored = localStorage.getItem('procureflow_ref_labels'); if (stored) JSON.parse(stored).forEach((l: string) => labels.add(l)); } catch {}
+    }
+    ['Lieferanten-Bestellnr.', 'Amazon Bestellnr.', 'Rahmenvertrag-Nr.', 'Projekt-Nr.', 'Kostenstelle'].forEach(l => labels.add(l));
+    return Array.from(labels);
+  });
   const [cart, setCart] = useState<CartItem[]>([]);
   const [supplierOptions, setSupplierOptions] = useState<string[]>(SUPPLIER_OPTIONS);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
@@ -288,9 +299,15 @@ export const CreateOrderWizard: React.FC<CreateOrderWizardProps> = ({
     setSubmissionStatus('submitting');
     try {
       await new Promise(r => setTimeout(r, 600));
+      const cleanedRefs = externalRefs.filter(r => r.label.trim() && r.value.trim());
+      // Persist used labels for future autocomplete
+      if (cleanedRefs.length > 0) {
+        try { const prev = JSON.parse(localStorage.getItem('procureflow_ref_labels') || '[]'); const all = Array.from(new Set([...prev, ...cleanedRefs.map(r => r.label)])).slice(0, 50); localStorage.setItem('procureflow_ref_labels', JSON.stringify(all)); } catch {}
+      }
       const order: PurchaseOrder = {
         id: formData.orderId, supplier: formData.supplier, dateCreated: formData.orderDate, expectedDeliveryDate: formData.expectedDeliveryDate,
         status: formData.poType === 'project' ? 'Projekt' : 'Lager', isArchived: false,
+        externalRefs: cleanedRefs.length > 0 ? cleanedRefs : undefined,
         items: cart.map(c => { const orig = initialOrder?.items.find(o => o.sku === c.sku); return { sku: c.sku, name: c.name, quantityExpected: c.quantity, quantityReceived: orig ? orig.quantityReceived : 0, isAddedLater: c.isAddedLater, isDeleted: c.isDeleted }; })
       };
       onCreateOrder(order); setSubmissionStatus('success');
@@ -572,6 +589,52 @@ export const CreateOrderWizard: React.FC<CreateOrderWizardProps> = ({
                         <input type="date" value={formData.expectedDeliveryDate} onChange={e => setFormData({ ...formData, expectedDeliveryDate: e.target.value })} className={`${inputCls} pl-5 pr-1 py-0.5 text-[11px] w-full`} style={{ colorScheme: isDark ? 'dark' : 'light', fontSize: '11px', height: '30px', minHeight: '0', WebkitAppearance: 'none', lineHeight: '1' }} />
                       </div>
                     </div>
+                  </div>
+                  {/* External References (Collapsible) */}
+                  <div>
+                    <button type="button" onClick={() => setShowExternalRefs(!showExternalRefs)}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
+                        showExternalRefs 
+                          ? (isDark ? 'bg-slate-800/50 border-slate-700 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-600')
+                          : (isDark ? 'border-slate-800 text-slate-500 hover:border-slate-700' : 'border-slate-200 text-slate-400 hover:border-slate-300')
+                      }`}>
+                      <span className="flex items-center gap-1.5"><Hash size={12} /> Externe Referenzen {externalRefs.length > 0 && <span className={`px-1.5 py-0.5 rounded-full text-[9px] ${isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>{externalRefs.length}</span>}</span>
+                      <ChevronDown size={14} className={`transition-transform ${showExternalRefs ? 'rotate-180' : ''}`} />
+                    </button>
+                    {showExternalRefs && (
+                      <div className="mt-2 space-y-2">
+                        {externalRefs.map((ref, ri) => (
+                          <div key={ri} className="flex items-center gap-1.5">
+                            <div className="relative flex-1 min-w-0">
+                              <input
+                                value={ref.label}
+                                onChange={e => setExternalRefs(prev => prev.map((r, i) => i === ri ? { ...r, label: e.target.value } : r))}
+                                placeholder="z.B. Lieferanten-Nr."
+                                list={`ref-labels-${ri}`}
+                                className={`${inputCls} text-[11px] py-1.5`}
+                              />
+                              <datalist id={`ref-labels-${ri}`}>
+                                {refLabelSuggestions.filter(s => !externalRefs.some((r, i) => i !== ri && r.label === s)).map(s => <option key={s} value={s} />)}
+                              </datalist>
+                            </div>
+                            <input
+                              value={ref.value}
+                              onChange={e => setExternalRefs(prev => prev.map((r, i) => i === ri ? { ...r, value: e.target.value } : r))}
+                              placeholder="Referenznummer"
+                              className={`${inputCls} flex-1 min-w-0 text-[11px] py-1.5`}
+                            />
+                            <button type="button" onClick={() => setExternalRefs(prev => prev.filter((_, i) => i !== ri))}
+                              className={`p-1.5 rounded-lg shrink-0 transition-colors ${isDark ? 'hover:bg-slate-800 text-slate-500' : 'hover:bg-slate-100 text-slate-400'}`}>
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))}
+                        <button type="button" onClick={() => setExternalRefs(prev => [...prev, { label: '', value: '' }])}
+                          className={`w-full py-1.5 rounded-lg border border-dashed text-[11px] font-bold flex items-center justify-center gap-1 transition-all ${isDark ? 'border-slate-700 text-slate-500 hover:border-slate-600 hover:text-slate-400' : 'border-slate-300 text-slate-400 hover:border-slate-400 hover:text-slate-500'}`}>
+                          <Plus size={12} /> Referenz hinzufügen
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

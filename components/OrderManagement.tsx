@@ -5,7 +5,7 @@ import {
   Search, Filter, Calendar, Truck, ChevronRight, 
   X, FileText, Pencil, ClipboardCheck, Archive, CheckSquare, Square, PackagePlus,
   CheckCircle2, Ban, Briefcase, Lock, Plus, AlertCircle, Box, AlertTriangle, Info, Clock,
-  Link as LinkIcon, ExternalLink, Copy, Check, Edit2, Trash2, MoreVertical, Eye
+  Link as LinkIcon, ExternalLink, Copy, Hash, Check, Edit2, Trash2, MoreVertical, Eye
 } from 'lucide-react';
 import { PurchaseOrder, Theme, ReceiptMaster, ActiveModule, Ticket } from '../types';
 import { LifecycleStepper } from './LifecycleStepper';
@@ -388,7 +388,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({
     return orders.filter(o => {
       if (!showArchived && o.isArchived) return false;
       const term = searchTerm.toLowerCase();
-      const matchesSearch = o.id.toLowerCase().includes(term) || o.supplier.toLowerCase().includes(term);
+      const matchesSearch = o.id.toLowerCase().includes(term) || o.supplier.toLowerCase().includes(term) || (o.externalRefs?.some(r => r.value.toLowerCase().includes(term) || r.label.toLowerCase().includes(term)) ?? false);
       if (!matchesSearch) return false;
 
       if (filterStatus === 'open') return isOrderOpen(o);
@@ -779,6 +779,22 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({
                         </div>
                         
                         {/* LINK MANAGER SECTION */}
+                        {/* External References */}
+                        {selectedOrder.externalRefs && selectedOrder.externalRefs.length > 0 && (
+                          <div>
+                            <div className={`text-[10px] uppercase font-bold tracking-wider opacity-60 mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Externe Referenzen</div>
+                            <div className="space-y-1">
+                              {selectedOrder.externalRefs.map((ref, ri) => (
+                                <div key={ri} className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                                  <Hash size={11} className="opacity-40 shrink-0" />
+                                  <span className="opacity-60">{ref.label}:</span>
+                                  <span className="font-bold font-mono">{ref.value}</span>
+                                  <button onClick={() => { navigator.clipboard.writeText(ref.value); }} className={`p-0.5 rounded opacity-0 group-hover/link:opacity-100 transition-opacity ${isDark ? 'hover:bg-slate-800' : 'hover:bg-slate-100'}`} title="Kopieren"><Copy size={11} /></button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                         <div>
                             <div className={`text-[10px] uppercase font-bold tracking-wider opacity-60 mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Bestellbestätigung</div>
                             

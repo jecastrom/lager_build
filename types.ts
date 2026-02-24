@@ -86,6 +86,11 @@ export interface PurchaseOrderItem {
   isDeleted?: boolean;    // Item removed ("Soft Delete") during edit
 }
 
+export interface ExternalRef {
+  label: string;  // e.g. "Lieferanten-Bestellnr.", "Amazon Bestellnr."
+  value: string;  // e.g. "SO-881234", "302-1234567"
+}
+
 export interface PurchaseOrder {
   id: string;
   supplier: string;
@@ -93,6 +98,7 @@ export interface PurchaseOrder {
   dateCreated: string;
   expectedDeliveryDate?: string;
   items: PurchaseOrderItem[];
+  externalRefs?: ExternalRef[]; // Supplier order numbers, marketplace refs, etc.
   pdfUrl?: string; // URL to the generated or uploaded PDF
   orderConfirmationUrl?: string; // Link to Order Confirmation (Bestellbestätigung) e.g. SharePoint
   isArchived: boolean; // POs are never deleted, just archived
