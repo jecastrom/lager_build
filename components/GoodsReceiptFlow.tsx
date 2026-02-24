@@ -321,13 +321,15 @@ const POSelectionModal = ({ isOpen, onClose, orders, onSelect, receiptMasters, t
   if (!isOpen) return null;
   const isDark = theme === 'dark';
   const [term, setTerm] = useState('');
+  const fmtDate = (d?: string) => { if (!d) return '—'; const p = new Date(d); return p.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }); };
   const filtered = orders.filter(o => {
     if (o.isArchived || o.status === 'Storniert' || o.isForceClosed) return false;
     const totalOrdered = o.items.reduce((s, i) => s + i.quantityExpected, 0);
     const totalReceived = o.items.reduce((s, i) => s + i.quantityReceived, 0);
     if (totalReceived >= totalOrdered && totalOrdered > 0) return false;
     if (!term) return true;
-    return o.id.toLowerCase().includes(term.toLowerCase()) || o.supplier.toLowerCase().includes(term.toLowerCase());
+    const t = term.toLowerCase();
+    return o.id.toLowerCase().includes(t) || o.supplier.toLowerCase().includes(t) || (o.externalRefs?.some(r => r.value.toLowerCase().includes(t)) ?? false);
   });
   return createPortal(
     <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4">
@@ -346,16 +348,26 @@ const POSelectionModal = ({ isOpen, onClose, orders, onSelect, receiptMasters, t
             const isProject = po.status === 'Projekt';
             return (
               <button key={po.id} onClick={() => onSelect(po)} className={`w-full text-left p-4 rounded-xl border transition-all ${isDark ? 'bg-slate-800 border-slate-700 hover:border-blue-500' : 'bg-white border-slate-200 hover:border-[#0077B5] hover:shadow-md'}`}>
-                <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center gap-3 mb-1.5">
                   <span className={`font-mono font-bold text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>{po.id}</span>
                   {isProject ? <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase flex items-center gap-1 ${isDark ? 'bg-blue-900/30 text-blue-400 border-blue-900' : 'bg-blue-100 text-blue-700 border-blue-200'}`}><Briefcase size={10}/> Projekt</span> : <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase flex items-center gap-1 ${isDark ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-slate-100 text-slate-600 border-slate-200'}`}><Box size={10}/> Lager</span>}
                   {totalReceived > 0 && totalReceived < totalOrdered && <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase ${isDark ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-amber-100 text-amber-700 border-amber-200'}`}>Teillieferung</span>}
                 </div>
-                <div className="flex items-center gap-4 text-sm opacity-70">
-                  <span className="flex items-center gap-1.5 font-medium"><Truck size={14}/> {po.supplier}</span>
-                  <span className="flex items-center gap-1.5"><Calendar size={14}/> {new Date(po.dateCreated).toLocaleDateString()}</span>
-                  <span className="ml-auto font-mono text-xs opacity-50">{po.items.length} Pos.</span>
+                <div className="flex items-center gap-4 text-xs opacity-70 flex-wrap">
+                  <span className="flex items-center gap-1.5 font-medium"><Truck size={12}/> {po.supplier}</span>
+                  <span className="flex items-center gap-1.5"><Calendar size={12}/> {fmtDate(po.dateCreated)}</span>
+                  {po.expectedDeliveryDate && <span className="flex items-center gap-1.5"><Clock size={12}/> Lieferung: {fmtDate(po.expectedDeliveryDate)}</span>}
+                  <span className="font-mono opacity-70">{po.items.length} Pos.</span>
                 </div>
+                {po.externalRefs && po.externalRefs.length > 0 && (
+                  <div className={`mt-1.5 pt-1.5 border-t flex flex-wrap gap-x-4 gap-y-0.5 ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+                    {po.externalRefs.map((ref, ri) => (
+                      <span key={ri} className="flex items-center gap-1 text-[11px] opacity-60">
+                        <Hash size={9} className="shrink-0" /> {ref.label}: <span className="font-mono font-bold opacity-100">{ref.value}</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </button>
             );
           })}
@@ -993,24 +1005,35 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
                 )}
               </div>
               {linkedPoId ? (
-                <div className={`p-3 rounded-lg border ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
-                  <div className="flex items-center gap-2">
-                    <ClipboardList size={18} className="text-[#0077B5]"/>
-                    <span className="font-mono font-bold">{linkedPoId}</span>
-                  </div>
-                  <div className="text-xs opacity-60 mt-1">{headerData.lieferant}</div>
-                  {(() => { const po = purchaseOrders?.find(p => p.id === linkedPoId); return po?.externalRefs && po.externalRefs.length > 0 ? (
-                    <div className={`mt-2 pt-2 border-t space-y-0.5 ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
-                      {po.externalRefs.map((ref, ri) => (
-                        <div key={ri} className="flex items-center gap-1.5 text-[11px]">
-                          <Tag size={10} className="opacity-40 shrink-0" />
-                          <span className="opacity-50">{ref.label}:</span>
-                          <span className="font-mono font-bold opacity-80">{ref.value}</span>
+                (() => {
+                  const po = purchaseOrders?.find(p => p.id === linkedPoId);
+                  const isProject = po?.status === 'Projekt';
+                  const fmtD = (d?: string) => { if (!d) return '—'; return new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }); };
+                  return (
+                    <div className={`p-3 rounded-lg border ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <ClipboardList size={16} className="text-[#0077B5]"/>
+                        <span className="font-mono font-bold">{linkedPoId}</span>
+                        {po && (isProject ? <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border uppercase flex items-center gap-1 ${isDark ? 'bg-blue-900/30 text-blue-400 border-blue-900' : 'bg-blue-100 text-blue-700 border-blue-200'}`}><Briefcase size={8}/> Projekt</span> : <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border uppercase flex items-center gap-1 ${isDark ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-slate-100 text-slate-600 border-slate-200'}`}><Box size={8}/> Lager</span>)}
+                      </div>
+                      <div className="flex items-center gap-3 text-xs opacity-60 flex-wrap">
+                        <span className="flex items-center gap-1"><Truck size={11}/> {headerData.lieferant}</span>
+                        {po && <span className="flex items-center gap-1"><Calendar size={11}/> {fmtD(po.dateCreated)}</span>}
+                        {po?.expectedDeliveryDate && <span className="flex items-center gap-1"><Clock size={11}/> Lieferung: {fmtD(po.expectedDeliveryDate)}</span>}
+                        {po && <span className="font-mono opacity-70">{po.items.length} Pos.</span>}
+                      </div>
+                      {po?.externalRefs && po.externalRefs.length > 0 && (
+                        <div className={`mt-2 pt-2 border-t flex flex-wrap gap-x-4 gap-y-0.5 ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+                          {po.externalRefs.map((ref, ri) => (
+                            <span key={ri} className="flex items-center gap-1 text-[11px] opacity-60">
+                              <Hash size={9} className="shrink-0" /> {ref.label}: <span className="font-mono font-bold opacity-100">{ref.value}</span>
+                            </span>
+                          ))}
                         </div>
-                      ))}
+                      )}
                     </div>
-                  ) : null; })()}
-                </div>
+                  );
+                })()
               ) : (
                 <button onClick={() => setShowPoModal(true)} className="w-full px-4 py-3 rounded-xl font-bold border-2 border-dashed transition-all hover:border-[#0077B5] hover:bg-[#0077B5]/5 dark:border-slate-700 dark:hover:border-blue-500 dark:hover:bg-blue-500/10">
                   <Plus size={20} className="inline mr-2"/> Bestellung auswählen
