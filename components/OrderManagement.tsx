@@ -249,6 +249,9 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({
   const [isEditingLink, setIsEditingLink] = useState(false);
   const [tempLink, setTempLink] = useState('');
   const [showCopyToast, setShowCopyToast] = useState(false);
+  const [isEditingRefs, setIsEditingRefs] = useState(false);
+  const [tempRefs, setTempRefs] = useState<Array<{ label: string; value: string }>>([]);
+  const refLabelSuggestions = ['Lieferanten-Bestellnr.', 'Amazon Bestellnr.', 'Rahmenvertrag-Nr.', 'Projekt-Nr.', 'Kostenstelle', 'Marktplatz-Nr.'];
 
   // -- Cancel Confirmation Modal State --
   const [cancelConfirmOrderId, setCancelConfirmOrderId] = useState<string | null>(null);
@@ -291,6 +294,8 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({
           setIsEditingLink(false);
           setTempLink('');
           setShowCopyToast(false);
+          setIsEditingRefs(false);
+          setTempRefs([]);
       }
   }, [selectedOrder?.id]);
 
@@ -779,22 +784,62 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({
                         </div>
                         
                         {/* LINK MANAGER SECTION */}
-                        {/* External References */}
-                        {selectedOrder.externalRefs && selectedOrder.externalRefs.length > 0 && (
-                          <div>
-                            <div className={`text-[10px] uppercase font-bold tracking-wider opacity-60 mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Externe Referenzen</div>
+                        {/* External References — Inline Editable */}
+                        <div>
+                          <div className={`text-[10px] uppercase font-bold tracking-wider opacity-60 mb-1.5 flex items-center justify-between ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                            <span>Externe Referenzen</span>
+                            {!isEditingRefs && (
+                              <button onClick={() => { setTempRefs(selectedOrder.externalRefs ? [...selectedOrder.externalRefs] : []); setIsEditingRefs(true); }}
+                                className={`p-1 rounded transition-colors ${isDark ? 'hover:bg-slate-800 text-slate-500' : 'hover:bg-slate-100 text-slate-400'}`} title="Bearbeiten">
+                                <Edit2 size={12} />
+                              </button>
+                            )}
+                          </div>
+                          {isEditingRefs ? (
+                            <div className="space-y-1.5">
+                              {tempRefs.map((ref, ri) => (
+                                <div key={ri} className="flex items-center gap-1">
+                                  <input value={ref.label} onChange={e => setTempRefs(prev => prev.map((r, i) => i === ri ? { ...r, label: e.target.value } : r))}
+                                    placeholder="z.B. Lieferanten-Nr." list={`modal-ref-labels-${ri}`}
+                                    className={`flex-1 min-w-0 py-1 px-2 rounded border text-xs outline-none focus:ring-1 ${isDark ? 'bg-slate-800 border-slate-700 text-white focus:ring-blue-500' : 'bg-white border-slate-300 text-slate-900 focus:ring-blue-500'}`} />
+                                  <datalist id={`modal-ref-labels-${ri}`}>{refLabelSuggestions.filter(s => !tempRefs.some((r, i) => i !== ri && r.label === s)).map(s => <option key={s} value={s} />)}</datalist>
+                                  <input value={ref.value} onChange={e => setTempRefs(prev => prev.map((r, i) => i === ri ? { ...r, value: e.target.value } : r))}
+                                    placeholder="Referenznummer"
+                                    className={`flex-1 min-w-0 py-1 px-2 rounded border text-xs outline-none focus:ring-1 ${isDark ? 'bg-slate-800 border-slate-700 text-white focus:ring-blue-500' : 'bg-white border-slate-300 text-slate-900 focus:ring-blue-500'}`} />
+                                  <button onClick={() => setTempRefs(prev => prev.filter((_, i) => i !== ri))}
+                                    className={`p-1 rounded transition-colors ${isDark ? 'hover:bg-slate-800 text-slate-500' : 'hover:bg-slate-100 text-slate-400'}`}><X size={12} /></button>
+                                </div>
+                              ))}
+                              <button onClick={() => setTempRefs(prev => [...prev, { label: '', value: '' }])}
+                                className={`w-full py-1 rounded border border-dashed text-[10px] font-bold flex items-center justify-center gap-1 ${isDark ? 'border-slate-700 text-slate-500 hover:border-slate-600' : 'border-slate-300 text-slate-400 hover:border-slate-400'}`}>
+                                <Plus size={10} /> Hinzufügen
+                              </button>
+                              <div className="flex items-center gap-1 pt-0.5">
+                                <button onClick={() => {
+                                  const cleaned = tempRefs.filter(r => r.label.trim() && r.value.trim());
+                                  const updated = { ...selectedOrder, externalRefs: cleaned.length > 0 ? cleaned : undefined };
+                                  onUpdateOrder(updated); setSelectedOrder(updated); setIsEditingRefs(false);
+                                }} className="p-1 rounded bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500/30"><Check size={14} /></button>
+                                <button onClick={() => setIsEditingRefs(false)} className="p-1 rounded bg-slate-500/20 text-slate-500 hover:bg-slate-500/30"><X size={14} /></button>
+                              </div>
+                            </div>
+                          ) : selectedOrder.externalRefs && selectedOrder.externalRefs.length > 0 ? (
                             <div className="space-y-1">
                               {selectedOrder.externalRefs.map((ref, ri) => (
                                 <div key={ri} className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                                   <Hash size={11} className="opacity-40 shrink-0" />
                                   <span className="opacity-60">{ref.label}:</span>
                                   <span className="font-bold font-mono">{ref.value}</span>
-                                  <button onClick={() => { navigator.clipboard.writeText(ref.value); }} className={`p-0.5 rounded opacity-0 group-hover/link:opacity-100 transition-opacity ${isDark ? 'hover:bg-slate-800' : 'hover:bg-slate-100'}`} title="Kopieren"><Copy size={11} /></button>
                                 </div>
                               ))}
                             </div>
-                          </div>
-                        )}
+                          ) : (
+                            <button onClick={() => { setTempRefs([{ label: '', value: '' }]); setIsEditingRefs(true); }}
+                              className={`text-xs flex items-center gap-1.5 transition-colors ${isDark ? 'text-slate-500 hover:text-slate-400' : 'text-slate-400 hover:text-slate-500'}`}>
+                              <Plus size={12} /> Referenz hinzufügen
+                            </button>
+                          )}
+                        </div>
                         <div>
                             <div className={`text-[10px] uppercase font-bold tracking-wider opacity-60 mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Bestellbestätigung</div>
                             
