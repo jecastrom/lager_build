@@ -829,7 +829,7 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
     onSuccess({ ...headerData, batchId, status: finalResultStatus }, enriched, created, forceClose);
   };
 
-  const inputClass = `w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 ${isDark ? 'bg-slate-900 border-slate-700 text-slate-100 focus:ring-blue-500/30' : 'bg-white border-slate-200 text-[#313335] focus:ring-[#0077B5]/20'}`;
+  const inputClass = `w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 ${isDark ? 'bg-slate-800/60 border-slate-700/60 text-slate-100 focus:ring-[#0077B5]/30 focus:border-[#0077B5]/40' : 'bg-white border-slate-200 text-[#313335] focus:ring-[#0077B5]/20'}`;
   const labelClass = `text-[10px] uppercase font-bold tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`;
   const valClass = `font-mono text-sm font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`;
 
@@ -840,7 +840,7 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
   };
 
   return (
-    <div className={`h-full flex flex-col rounded-2xl border overflow-hidden animate-in slide-in-from-right-8 duration-300 ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+    <div className={`h-full flex flex-col rounded-2xl border overflow-hidden animate-in slide-in-from-right-8 duration-300 ${isDark ? 'bg-slate-950 border-slate-800/60' : 'bg-white border-slate-200'}`}>
 
       {/* RETURN AUTO-ADVANCE OVERLAY */}
       {returnAutoAdvancing && createPortal(
@@ -902,10 +902,10 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
       )}
 
       {/* HEADER + PROGRESS — merged on desktop */}
-      <div className={`shrink-0 border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+      <div className={`shrink-0 border-b ${isDark ? 'border-slate-800/60 bg-gradient-to-b from-slate-900 to-slate-950' : 'border-slate-200 bg-white'}`}>
         <div className="p-4 md:px-5 md:py-2.5 flex items-center justify-between">
           <div className="flex items-center gap-3 md:gap-2">
-            <div className={`p-2.5 md:p-1.5 rounded-xl md:rounded-lg ${isDark ? 'bg-[#0077B5]/20' : 'bg-[#0077B5]/10'}`}>
+            <div className={`p-2.5 md:p-1.5 rounded-xl md:rounded-lg ${isDark ? 'bg-[#0077B5]/15 ring-1 ring-[#0077B5]/20' : 'bg-[#0077B5]/10'}`}>
               <Package size={24} className="text-[#0077B5] md:hidden" />
               <Package size={16} className="text-[#0077B5] hidden md:block" />
             </div>
@@ -918,7 +918,7 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
           <div className="hidden md:flex items-center gap-3 flex-1 max-w-md mx-8">
             {[{s:1,l:'Kopfdaten'},{s:2,l:'Inspektion'},{s:3,l:'Prüfung'}].map(({s,l}) => (
               <div key={s} className="flex-1 flex flex-col items-center gap-0.5">
-                <div className={`w-full h-1 rounded-full transition-all ${s <= step ? 'bg-[#0077B5]' : (isDark ? 'bg-slate-800' : 'bg-slate-200')}`} />
+                <div className={`w-full h-1 rounded-full transition-all ${s <= step ? 'bg-[#0077B5]' : (isDark ? 'bg-slate-700/50' : 'bg-slate-200')}`} />
                 <span className={`text-[9px] uppercase font-bold tracking-wider ${s <= step ? 'text-[#0077B5]' : 'opacity-40'}`}>{l}</span>
               </div>
             ))}
@@ -929,7 +929,7 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
           </button>
         </div>
         {/* Mobile-only progress bar */}
-        <div className={`px-4 py-3 border-t md:hidden ${isDark ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50'}`}>
+        <div className={`px-4 py-3 border-t md:hidden ${isDark ? 'border-slate-800/40 bg-slate-900/30' : 'border-slate-100 bg-slate-50'}`}>
           <div className="flex items-center gap-2">
             {[1, 2, 3].map(s => (
               <div key={s} className={`flex-1 h-1.5 rounded-full transition-all ${s <= step ? 'bg-[#0077B5]' : (isDark ? 'bg-slate-800' : 'bg-slate-200')}`} />
@@ -1064,7 +1064,7 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
 
                   {/* Mobile Card View */}
                   <div className="md:hidden">
-                    <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}`}>
+                    <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-slate-800/40 border-slate-700/50 ring-1 ring-white/[0.02]' : 'bg-white border-slate-200'}`}>
                       {/* Header */}
                       <div className={`px-4 py-3 border-b flex items-center justify-between ${isDark ? 'border-slate-700' : 'border-slate-100'}`}>
                         <div className="flex-1 min-w-0 mr-3">
@@ -1177,7 +1177,7 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
 
                   {/* Desktop Carousel View */}
                   <div className="hidden md:block">
-                    <div className={`rounded-2xl p-6 ${isDark ? 'bg-black/20' : 'bg-slate-100/50'}`}>
+                    <div className={`rounded-2xl p-6 ${isDark ? 'bg-slate-800/20 ring-1 ring-white/[0.02]' : 'bg-slate-100/50'}`}>
                       {/* Progress Bar */}
                       <div className="flex items-center gap-4 mb-5 max-w-4xl mx-auto">
                         <div className={`flex-1 h-2 rounded-full overflow-hidden ${isDark ? 'bg-slate-800' : 'bg-slate-300'}`}>
@@ -1194,9 +1194,9 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
                         </button>
 
                         {/* Card */}
-                        <div key={`desktop-card-${idx}`} className={`flex-1 rounded-2xl border shadow-2xl overflow-hidden animate-in slide-in-from-right-4 duration-300 ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+                        <div key={`desktop-card-${idx}`} className={`rounded-2xl border shadow-2xl overflow-hidden animate-in slide-in-from-right-4 duration-300 ${isDark ? 'bg-slate-800/70 backdrop-blur-sm border-slate-700/50 ring-1 ring-white/[0.03]' : 'bg-white border-slate-200'}`}>
                           {/* Header */}
-                          <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'border-slate-700' : 'border-slate-100'}`}>
+                          <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'border-slate-700/40 bg-gradient-to-r from-[#0077B5]/[0.04] to-transparent' : 'border-slate-100'}`}>
                             <div>
                               <div className="font-bold text-lg">{line.item.name}</div>
                               <div className="text-xs font-mono opacity-50 mt-0.5">{line.item.sku}</div>
@@ -1222,7 +1222,7 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
                                 {c.offen > 0 && !forceClose && (
                                   <div className="flex justify-between items-center"><span className="text-[10px] uppercase tracking-wider text-amber-500 font-bold flex items-center gap-1"><AlertCircle size={12}/> Offen</span><span className="font-mono text-sm font-bold text-amber-500">{c.offen}</span></div>
                                 )}
-                                <div className={`flex justify-between items-center px-3 py-2.5 rounded-lg border ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
+                                <div className={`flex justify-between items-center px-3 py-2.5 rounded-lg border ${isDark ? 'bg-slate-700/30 border-slate-600/30' : 'bg-slate-50 border-slate-200'}`}>
                                   <span className={labelClass}>Buchung</span>
                                   <span className={`font-mono text-sm font-bold flex items-center gap-1.5 ${c.buchung >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                                     <CheckCircle2 size={14}/> {c.buchung >= 0 ? '+' : ''}{c.buchung}
@@ -1453,7 +1453,13 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
         {step === 3 && (
           <div className="max-w-3xl mx-auto space-y-6 md:space-y-3">
             <div className="text-center space-y-3 md:space-y-1.5">
-              <div className={`inline-flex p-4 md:p-2.5 rounded-full ${globalStats.totalOffen > 0 ? 'bg-amber-100 text-amber-600' : globalStats.totalZuViel > 0 ? 'bg-orange-100 text-orange-600' : 'bg-emerald-100 text-emerald-600'}`}>
+              <div className={`inline-flex p-4 md:p-2.5 rounded-full ${
+                globalStats.totalOffen > 0 
+                  ? (isDark ? 'bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/20' : 'bg-amber-100 text-amber-600') 
+                  : globalStats.totalZuViel > 0 
+                    ? (isDark ? 'bg-orange-500/15 text-orange-400 ring-1 ring-orange-500/20' : 'bg-orange-100 text-orange-600') 
+                    : (isDark ? 'bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/20' : 'bg-emerald-100 text-emerald-600')
+              }`}>
                 {globalStats.totalOffen > 0 ? <AlertTriangle size={32} className="md:hidden"/> : globalStats.totalZuViel > 0 ? <Info size={32} className="md:hidden"/> : <CheckCircle2 size={32} className="md:hidden"/>}
                 {globalStats.totalOffen > 0 ? <AlertTriangle size={20} className="hidden md:block"/> : globalStats.totalZuViel > 0 ? <Info size={20} className="hidden md:block"/> : <CheckCircle2 size={20} className="hidden md:block"/>}
               </div>
@@ -1461,7 +1467,7 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
               <div className="text-lg md:text-sm">Status: <span className="font-bold">{headerData.status}</span></div>
             </div>
 
-            <div className={`grid grid-cols-4 gap-2 p-4 md:p-2.5 rounded-xl border ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
+            <div className={`grid grid-cols-4 gap-2 p-4 md:p-2.5 rounded-xl border ${isDark ? 'bg-slate-900/80 border-slate-700/40' : 'bg-slate-50 border-slate-200'}`}>
               <div className="text-center"><div className="text-xl md:text-base font-bold text-emerald-600">+{Math.max(0, globalStats.totalBuchung)}</div><div className="text-[9px] uppercase font-bold opacity-50">Zugang</div></div>
               <div className="text-center"><div className="text-xl md:text-base font-bold text-red-500">{globalStats.totalZurueck > 0 ? `−${globalStats.totalZurueck}` : '0'}</div><div className="text-[9px] uppercase font-bold opacity-50">Zurück</div></div>
               <div className="text-center"><div className={`text-xl md:text-base font-bold ${globalStats.totalOffen > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>{globalStats.totalOffen}</div><div className="text-[9px] uppercase font-bold opacity-50">Offen</div></div>
@@ -1474,8 +1480,8 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
               </div>
             )}
 
-            <div className={`rounded-xl border overflow-hidden ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
-              <div className={`px-4 py-2.5 border-b text-xs font-bold uppercase tracking-wider ${isDark ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>Positionen</div>
+            <div className={`rounded-xl border overflow-hidden ${isDark ? 'border-slate-700/40 ring-1 ring-white/[0.02]' : 'border-slate-200'}`}>
+              <div className={`px-4 py-2.5 border-b text-xs font-bold uppercase tracking-wider ${isDark ? 'bg-slate-800/40 border-slate-700/40 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>Positionen</div>
               <div className="divide-y divide-slate-500/10 max-h-[40vh] md:max-h-[30vh] overflow-y-auto">
                 {cart.map((line, i) => {
                   const lc = getLineCalc(line);
@@ -1525,11 +1531,11 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
       </div>
 
       {/* STICKY FOOTER - PINNED TO BOTTOM */}
-      <div className={`sticky bottom-0 z-10 border-t shrink-0 ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}
+      <div className={`sticky bottom-0 z-10 border-t shrink-0 ${isDark ? 'bg-slate-900/90 backdrop-blur-md border-slate-800/60' : 'bg-slate-50 border-slate-200'}`}
         style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}>
         <div className="px-4 md:px-5 pt-3 flex gap-3 max-w-4xl mx-auto md:justify-end">
           {step > 1 && (
-            <button onClick={() => { if (initialMode === 'return' && step === 3) { onClose(); } else { setStep(prev => (prev - 1) as any); } }} className="px-5 py-3 md:py-[9px] rounded-xl md:rounded-lg font-bold md:font-semibold text-sm md:text-[13px] bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 shrink-0">
+            <button onClick={() => { if (initialMode === 'return' && step === 3) { onClose(); } else { setStep(prev => (prev - 1) as any); } }} className="px-5 py-3 md:py-[9px] rounded-xl md:rounded-lg font-bold md:font-semibold text-sm md:text-[13px] bg-slate-200 text-slate-700 dark:bg-slate-700/50 dark:text-slate-300 dark:hover:bg-slate-700 shrink-0">
               {initialMode === 'return' && step === 3 ? 'Schließen' : 'Zurück'}
             </button>
           )}
