@@ -1994,7 +1994,16 @@ export const ReceiptManagement: React.FC<ReceiptManagementProps> = ({
                                                                                             </span>
                                                                                         )}
                                                                                     </div>
-                                                                                    <ItemStatusBadge item={fullItem} quantityInfo={{ ordered, received: totalReceived }} />
+                                                                                    {/* Use dItem (DeliveryLogItem) as authoritative source for quality issues */}
+                                                                                    {dItem.damageFlag && dItem.rejectionReason === 'Wrong' ? (
+                                                                                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border ${isDark ? 'bg-red-500/10 text-red-400 border-red-500/30' : 'bg-red-50 text-red-600 border-red-200'}`}><AlertTriangle size={10} /> Schaden + Falsch</span>
+                                                                                    ) : dItem.damageFlag ? (
+                                                                                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border ${isDark ? 'bg-red-500/10 text-red-400 border-red-500/30' : 'bg-red-50 text-red-600 border-red-200'}`}><AlertTriangle size={10} /> Schaden</span>
+                                                                                    ) : dItem.rejectionReason === 'Wrong' ? (
+                                                                                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border ${isDark ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' : 'bg-orange-50 text-orange-700 border-orange-200'}`}><AlertTriangle size={10} /> Falsch</span>
+                                                                                    ) : dItem.quantityRejected > 0 ? (
+                                                                                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border ${isDark ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' : 'bg-amber-50 text-amber-700 border-amber-200'}`}><AlertTriangle size={10} /> Abweichung</span>
+                                                                                    ) : <ItemStatusBadge item={fullItem} quantityInfo={{ ordered, received: totalReceived }} />}
                                                                                 </div>
                                                                                 <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                                                                                     {ordered > 0 && <div className="flex justify-between"><span className="text-[10px] uppercase font-bold opacity-40">Bestellt</span><span className="font-mono opacity-70">{ordered}</span></div>}
