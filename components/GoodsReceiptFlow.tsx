@@ -1055,11 +1055,9 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
 
               return (
                 <div className="space-y-3">
-                  {/* Mobile Navigation - Only show on mobile */}
-                  <div className="md:hidden flex items-center justify-between">
-                    <button onClick={() => setCardIdx(Math.max(0, idx - 1))} disabled={idx === 0} className={`p-2.5 rounded-lg transition-all ${idx === 0 ? 'opacity-20' : 'hover:bg-slate-200 dark:hover:bg-slate-800 active:scale-90'}`}><ArrowLeft size={22} /></button>
-                    <span className="text-sm font-bold opacity-60">{idx + 1} / {cart.length}</span>
-                    <button onClick={() => setCardIdx(Math.min(cart.length - 1, idx + 1))} disabled={idx >= cart.length - 1} className={`p-2.5 rounded-lg transition-all ${idx >= cart.length - 1 ? 'opacity-20' : 'hover:bg-slate-200 dark:hover:bg-slate-800 active:scale-90'}`}><ArrowRight size={22} /></button>
+                  {/* Mobile position indicator */}
+                  <div className="md:hidden flex items-center justify-center">
+                    <span className="text-xs font-bold opacity-50">Artikel {idx + 1} von {cart.length}</span>
                   </div>
 
                   {/* Mobile Card View */}
@@ -1535,17 +1533,39 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
         style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}>
         <div className="px-4 md:px-5 pt-3 flex gap-3 max-w-4xl mx-auto md:justify-end">
           {step > 1 && (
-            <button onClick={() => { if (initialMode === 'return' && step === 3) { onClose(); } else { setStep(prev => (prev - 1) as any); } }} className="px-5 py-3 md:py-[9px] rounded-xl md:rounded-lg font-bold md:font-semibold text-sm md:text-[13px] bg-slate-200 text-slate-700 dark:bg-slate-700/50 dark:text-slate-300 dark:hover:bg-slate-700 shrink-0">
-              {initialMode === 'return' && step === 3 ? 'Schließen' : 'Zurück'}
+            <button onClick={() => {
+              if (initialMode === 'return' && step === 3) { onClose(); }
+              else if (step === 2 && cardIdx > 0) { setCardIdx(prev => prev - 1); }
+              else { setStep(prev => (prev - 1) as any); if (step === 2) { /* going to step 1 */ } if (step === 3 && cart.length > 0) { setCardIdx(cart.length - 1); } }
+            }} className="px-5 py-3 md:py-[9px] rounded-xl md:rounded-lg font-bold md:font-semibold text-sm md:text-[13px] bg-slate-200 text-slate-700 dark:bg-slate-700/50 dark:text-slate-300 dark:hover:bg-slate-700 shrink-0">
+              {initialMode === 'return' && step === 3 ? 'Schließen' : step === 2 && cardIdx === 0 ? 'Kopfdaten' : 'Zurück'}
             </button>
           )}
-          {step < 3 ? (
-            <button onClick={() => setStep(prev => (prev + 1) as any)} disabled={step === 1 ? !headerData.lieferscheinNr : cart.length === 0}
+          {step === 1 ? (
+            <button onClick={() => setStep(2 as any)} disabled={!headerData.lieferscheinNr}
               className={`flex-1 md:flex-none md:px-8 py-3 md:py-[9px] rounded-xl md:rounded-lg font-bold md:font-semibold text-sm md:text-[13px] inline-flex items-center justify-center gap-1.5 transition-all active:scale-[0.97] text-white ${
-                (step === 1 ? headerData.lieferscheinNr : cart.length > 0) ? 'bg-[#0077B5] hover:bg-[#005f8f] shadow-md md:shadow-sm shadow-blue-500/25 md:shadow-blue-500/15' : 'bg-slate-300 dark:bg-slate-700 shadow-none cursor-not-allowed'
+                headerData.lieferscheinNr ? 'bg-[#0077B5] hover:bg-[#005f8f] shadow-md md:shadow-sm shadow-blue-500/25 md:shadow-blue-500/15' : 'bg-slate-300 dark:bg-slate-700 shadow-none cursor-not-allowed'
               }`}>
               Weiter <ArrowRight size={15} strokeWidth={2.5} />
             </button>
+          ) : step === 2 ? (
+            (() => {
+              const isLastItem = cardIdx >= cart.length - 1;
+              const canProceed = cart.length > 0;
+              return (
+                <button onClick={() => {
+                  if (isLastItem) { setStep(3 as any); }
+                  else { setCardIdx(prev => prev + 1); }
+                }} disabled={!canProceed}
+                  className={`flex-1 md:flex-none md:px-8 py-3 md:py-[9px] rounded-xl md:rounded-lg font-bold md:font-semibold text-sm md:text-[13px] inline-flex items-center justify-center gap-1.5 transition-all active:scale-[0.97] text-white ${
+                    !canProceed ? 'bg-slate-300 dark:bg-slate-700 shadow-none cursor-not-allowed' 
+                    : isLastItem ? 'bg-emerald-600 hover:bg-emerald-500 shadow-md md:shadow-sm shadow-emerald-500/25 md:shadow-emerald-500/15' 
+                    : 'bg-[#0077B5] hover:bg-[#005f8f] shadow-md md:shadow-sm shadow-blue-500/25 md:shadow-blue-500/15'
+                  }`}>
+                  {isLastItem ? <><CheckCircle2 size={15} /> Prüfung abschließen</> : <>Weiter <ArrowRight size={15} strokeWidth={2.5} /></>}
+                </button>
+              );
+            })()
           ) : (
             <button onClick={() => { setSubmissionStatus('submitting'); setTimeout(() => setSubmissionStatus('success'), 800); }}
               className="flex-1 md:flex-none md:px-8 py-3 md:py-[9px] bg-emerald-600 text-white rounded-xl md:rounded-lg font-bold md:font-semibold text-sm md:text-[13px] hover:bg-emerald-500 inline-flex items-center justify-center gap-1.5 transition-all active:scale-[0.97] shadow-md md:shadow-sm shadow-emerald-500/25 md:shadow-emerald-500/15">
