@@ -806,8 +806,9 @@ export default function App() {
                         rejectionReason: c.rejectionReason,
                         returnCarrier: c.returnCarrier,
                         returnTrackingId: c.returnTrackingId,
+                        notes: c.rejectionNotes || undefined,
                         
-                        damageFlag: !!c.isDamaged || !!c.issueNotes,
+                        damageFlag: (c.qtyDamaged || 0) > 0,
                         manualAddFlag: !c.orderedQty,
                         orderedQty: ordered,
                         previousReceived: previous,
@@ -852,8 +853,8 @@ export default function App() {
       name: c.item.name,
       quantity: c.qtyAccepted ?? c.qty, // Record only what was accepted into stock for the simple view
       targetLocation: c.location,
-      isDamaged: c.isDamaged,
-      issueNotes: c.issueNotes
+      isDamaged: (c.qtyDamaged || 0) > 0,
+      issueNotes: c.rejectionNotes || ''
     }));
     setReceiptItems(prev => [...prev, ...newReceiptItems]);
 

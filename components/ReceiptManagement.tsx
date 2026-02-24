@@ -1962,6 +1962,12 @@ export const ReceiptManagement: React.FC<ReceiptManagementProps> = ({
                                                                                     {(dItem.damageFlag || dItem.rejectionReason === 'Damaged') && dItem.quantityRejected > 0 && <div className="flex justify-between"><span className="text-[10px] uppercase font-bold text-red-500">Beschädigt</span><span className="font-mono font-bold text-red-500">{dItem.quantityRejected}</span></div>}
                                                                                     {dItem.rejectionReason === 'Wrong' && dItem.quantityRejected > 0 && <div className="flex justify-between"><span className="text-[10px] uppercase font-bold text-amber-500">Falsch</span><span className="font-mono font-bold text-amber-500">{dItem.quantityRejected}</span></div>}
                                                                                 </div>
+                                                                                {dItem.notes && (
+                                                                                    <div className={`text-[11px] mt-1.5 px-2.5 py-1.5 rounded-lg flex items-start gap-1.5 ${isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-700'}`}>
+                                                                                        <AlertTriangle size={12} className="shrink-0 mt-0.5" />
+                                                                                        <span>{dItem.notes}</span>
+                                                                                    </div>
+                                                                                )}
                                                                                 {(dItem.returnCarrier || dItem.returnTrackingId) && (
                                                                                     <div className={`text-[11px] pl-2 border-l-2 ${isDark ? 'border-slate-600 text-slate-400' : 'border-slate-300 text-slate-500'}`}>
                                                                                         Rücksendung: {dItem.returnCarrier || 'â€“'} â€“ Tracking: {dItem.returnTrackingId || 'â€“'}

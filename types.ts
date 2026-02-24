@@ -115,6 +115,9 @@ export interface DeliveryLogItem {
   returnCarrier?: string;
   returnTrackingId?: string;
 
+  // Notes from inspection
+  notes?: string;
+  
   // Legacy / Flags (Kept for backward compatibility)
   damageFlag: boolean;
   manualAddFlag: boolean;
