@@ -1224,8 +1224,8 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
                                 )}
                                 <div className={`flex justify-between items-center px-3 py-2.5 rounded-lg border ${isDark ? 'bg-slate-700/30 border-slate-600/30' : 'bg-slate-50 border-slate-200'}`}>
                                   <span className={labelClass}>Buchung</span>
-                                  <span className={`font-mono text-sm font-bold flex items-center gap-1.5 ${c.buchung >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                                    <CheckCircle2 size={14}/> {c.buchung >= 0 ? '+' : ''}{c.buchung}
+                                  <span className={`font-mono text-sm font-bold flex items-center gap-1.5 ${line.qtyAccepted >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                    <CheckCircle2 size={14}/> {line.qtyAccepted >= 0 ? '+' : ''}{line.qtyAccepted}
                                   </span>
                                 </div>
                               </div>
