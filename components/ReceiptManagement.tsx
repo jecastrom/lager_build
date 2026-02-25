@@ -2118,7 +2118,7 @@ export const ReceiptManagement: React.FC<ReceiptManagementProps> = ({
                                         <span className="font-bold">{c.userName}</span>
                                         <span className="text-slate-500 font-mono text-[10px]">{formatDateDE(c.timestamp)}</span>
                                     </div>
-                                    <div className={`p-3 rounded-xl text-sm ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>
+                                    <div className={`p-3 rounded-xl text-sm whitespace-pre-wrap ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>
                                     {c.message}
                                     </div>
                                 </div>

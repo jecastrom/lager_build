@@ -644,6 +644,46 @@ export const TicketSystem: React.FC<TicketSystemProps> = ({
                                                     const isFirst = index === 0;
 
                                                     if (isSystem) {
+                                                        const isMultiLine = msg.text.includes('\n\n') || msg.text.includes('**');
+                                                        
+                                                        if (isMultiLine) {
+                                                            // Structured auto-message: left-aligned card with markdown parsing
+                                                            const sections = msg.text.split('\n\n').filter(Boolean);
+                                                            return (
+                                                                <div key={msg.id} className="my-3">
+                                                                    <div className="flex justify-center mb-2">
+                                                                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                                                                            isDark ? 'bg-blue-900/20 text-blue-400 border-blue-500/20' : 'bg-blue-50 text-blue-600 border-blue-200'
+                                                                        }`}>Automatische Nachricht</span>
+                                                                    </div>
+                                                                    <div className={`rounded-xl border text-xs leading-relaxed overflow-hidden ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
+                                                                        {sections.map((section, si) => {
+                                                                            const lines = section.split('\n');
+                                                                            const isHeader = si === 0 && lines[0].includes('**') && !lines[0].includes(':');
+                                                                            return (
+                                                                                <div key={si} className={`px-4 py-2.5 ${si > 0 ? `border-t ${isDark ? 'border-slate-700/50' : 'border-slate-200'}` : ''} ${isHeader ? `font-bold text-sm ${isDark ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-700'}` : ''}`}>
+                                                                                    {lines.map((line, li) => (
+                                                                                        <div key={li} className={`${li > 0 ? 'mt-0.5' : ''} ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                                                                                            {line.split(/(\*\*.*?\*\*)/g).map((part, pi) =>
+                                                                                                part.startsWith('**') && part.endsWith('**')
+                                                                                                    ? <strong key={pi} className={isDark ? 'text-slate-200' : 'text-slate-700'}>{part.slice(2, -2)}</strong>
+                                                                                                    : <span key={pi}>{part}</span>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    ))}
+                                                                                </div>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                    <div className="flex justify-center mt-1">
+                                                                        <span className={`text-[10px] font-mono opacity-50 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                                                                            {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        }
+
                                                         return (
                                                             <div key={msg.id} className="flex flex-col items-center my-2">
                                                                 <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
@@ -829,12 +869,44 @@ export const TicketSystem: React.FC<TicketSystemProps> = ({
                                     {msgs.map(msg => {
                                         const isSystem = msg.type === 'system' || msg.author === 'System';
                                         const isMe = msg.type === 'user' && msg.author !== 'System';
-                                        if (isSystem) return (
-                                            <div key={msg.id} className="flex flex-col items-center my-1">
-                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${isDark ? 'bg-slate-800 text-slate-500 border-slate-700' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>System</span>
-                                                <p className={`mt-1 text-xs text-center max-w-md ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{msg.text}</p>
-                                            </div>
-                                        );
+                                        if (isSystem) {
+                                            const isMultiLine = msg.text.includes('\n\n') || msg.text.includes('**');
+                                            if (isMultiLine) {
+                                                const sections = msg.text.split('\n\n').filter(Boolean);
+                                                return (
+                                                    <div key={msg.id} className="my-2">
+                                                        <div className="flex justify-center mb-2">
+                                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${isDark ? 'bg-blue-900/20 text-blue-400 border-blue-500/20' : 'bg-blue-50 text-blue-600 border-blue-200'}`}>Automatische Nachricht</span>
+                                                        </div>
+                                                        <div className={`rounded-xl border text-xs leading-relaxed overflow-hidden ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
+                                                            {sections.map((section, si) => {
+                                                                const lines = section.split('\n');
+                                                                const isHeader = si === 0 && lines[0].includes('**') && !lines[0].includes(':');
+                                                                return (
+                                                                    <div key={si} className={`px-3 py-2 ${si > 0 ? `border-t ${isDark ? 'border-slate-700/50' : 'border-slate-200'}` : ''} ${isHeader ? `font-bold text-sm ${isDark ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-700'}` : ''}`}>
+                                                                        {lines.map((line, li) => (
+                                                                            <div key={li} className={`${li > 0 ? 'mt-0.5' : ''} ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                                                                                {line.split(/(\*\*.*?\*\*)/g).map((part, pi) =>
+                                                                                    part.startsWith('**') && part.endsWith('**')
+                                                                                        ? <strong key={pi} className={isDark ? 'text-slate-200' : 'text-slate-700'}>{part.slice(2, -2)}</strong>
+                                                                                        : <span key={pi}>{part}</span>
+                                                                                )}
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+                                            return (
+                                                <div key={msg.id} className="flex flex-col items-center my-1">
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${isDark ? 'bg-slate-800 text-slate-500 border-slate-700' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>System</span>
+                                                    <p className={`mt-1 text-xs text-center max-w-md ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{msg.text}</p>
+                                                </div>
+                                            );
+                                        }
                                         return (
                                             <div key={msg.id} className="relative pl-6 border-l border-slate-500/20 last:border-0 pb-2">
                                                 <div className={`absolute -left-3 top-0 w-6 h-6 rounded-full flex items-center justify-center border-2 ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>

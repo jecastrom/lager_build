@@ -921,6 +921,20 @@ export default function App() {
       }
 
       if (autoMessages.length > 0) {
+        // Group messages by type for cleaner formatting
+        const damageLines = autoMessages.filter(m => m.startsWith('⚠️'));
+        const wrongLines = autoMessages.filter(m => m.startsWith('🚫'));
+        const shortageLines = autoMessages.filter(m => m.startsWith('📦 Fehlmenge'));
+        const overLines = autoMessages.filter(m => m.startsWith('📈'));
+        const otherLines = autoMessages.filter(m => !m.startsWith('⚠️') && !m.startsWith('🚫') && !m.startsWith('📦 Fehlmenge') && !m.startsWith('📈'));
+        
+        const sections: string[] = [];
+        if (damageLines.length > 0) sections.push(`── Beschädigungen ──\n${damageLines.join('\n')}`);
+        if (wrongLines.length > 0) sections.push(`── Falschlieferungen ──\n${wrongLines.join('\n')}`);
+        if (shortageLines.length > 0) sections.push(`── Fehlmengen ──\n${shortageLines.map(l => l.replace('📦 Fehlmenge: ', '📦 ')).join('\n')}`);
+        if (overLines.length > 0) sections.push(`── Übermengen ──\n${overLines.join('\n')}`);
+        if (otherLines.length > 0) sections.push(otherLines.join('\n'));
+
         const autoComment: ReceiptComment = {
           id: `auto-${crypto.randomUUID()}`,
           batchId,
@@ -928,7 +942,7 @@ export default function App() {
           userName: 'System',
           timestamp: Date.now(),
           type: 'note',
-          message: `📋 Automatische Prüfmeldung\n\n${autoMessages.join('\n\n')}`
+          message: `📋 Automatische Prüfmeldung\n\n${sections.join('\n\n')}`
         };
         setComments(prev => [autoComment, ...prev]);
       }
