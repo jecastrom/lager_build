@@ -102,18 +102,22 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 
 
 
-  const SettingRow = ({ icon, label, description, action }: { icon: React.ReactNode, label: string, description: string, action: React.ReactNode }) => (
-    <div className={`p-4 flex items-center justify-between border-b last:border-0 ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
-      <div className="flex items-center gap-4">
-        <div className={`p-2.5 rounded-xl ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-600'}`}>
+  const SettingRow = ({ icon, label, description, action }: {
+    icon: React.ReactNode; label: string; description: string; action: React.ReactNode;
+  }) => (
+    <div className={`flex flex-wrap items-center justify-between gap-3 p-4 border-b last:border-b-0 ${
+      isDark ? 'border-slate-800' : 'border-slate-100'
+    }`}>
+      <div className="flex items-center gap-4 min-w-0">
+        <div className={`p-2.5 rounded-xl shrink-0 ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-600'}`}>
           {icon}
         </div>
-        <div>
+        <div className="min-w-0">
           <div className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{label}</div>
           <div className="text-xs text-slate-500">{description}</div>
         </div>
       </div>
-      <div>{action}</div>
+      <div className="shrink-0">{action}</div>
     </div>
   );
 

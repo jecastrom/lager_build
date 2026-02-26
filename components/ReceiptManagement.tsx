@@ -1158,27 +1158,34 @@ export const ReceiptManagement: React.FC<ReceiptManagementProps> = ({
                 />
             </div>
 
-            <button 
-              onClick={() => setShowArchived(!showArchived)}
-              className={`px-4 py-3 md:py-0 rounded-xl border flex items-center justify-center gap-2 font-bold transition-all whitespace-nowrap ${
-                isDark ? 'bg-slate-900 border-slate-800 hover:bg-slate-800' : 'bg-white border-slate-200 hover:bg-slate-50'
-              } ${showArchived ? 'text-[#0077B5] border-[#0077B5]/30' : (isDark ? 'text-slate-400' : 'text-slate-500')}`}
-            >
-              {showArchived ? <CheckSquare size={18} /> : <Square size={18} />}
-              <span>Archivierte</span>
-            </button>
+            {/* COMPACT TOOLBAR — Archive & Filter as icon buttons */}
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setShowArchived(!showArchived)}
+                title={showArchived ? 'Archivierte ausblenden' : 'Archivierte einblenden'}
+                className={`relative p-2.5 md:px-4 md:py-0 rounded-xl border flex items-center justify-center gap-2 font-bold transition-all ${
+                  isDark ? 'bg-slate-900 border-slate-800 hover:bg-slate-800' : 'bg-white border-slate-200 hover:bg-slate-50'
+                } ${showArchived ? 'text-[#0077B5] border-[#0077B5]/30' : (isDark ? 'text-slate-400' : 'text-slate-500')}`}
+              >
+                {showArchived ? <Archive size={18} /> : <Archive size={18} />}
+                <span className="hidden md:inline">Archivierte</span>
+                {showArchived && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#0077B5] ring-2 ring-white dark:ring-slate-950" />}
+              </button>
 
-            <button 
-              onClick={() => setShowFilters(!showFilters)}
-              className={`px-4 py-3 md:py-0 rounded-xl border flex items-center justify-center gap-2 font-bold transition-all ${
-                showFilters 
-                   ? 'bg-[#0077B5] border-[#0077B5] text-white' 
-                   : isDark ? 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
-              }`}
-            >
-              <Filter size={18} />
-              <span>Filter</span>
-            </button>
+              <button 
+                onClick={() => setShowFilters(!showFilters)}
+                title="Erweiterte Filter"
+                className={`relative p-2.5 md:px-4 md:py-0 rounded-xl border flex items-center justify-center gap-2 font-bold transition-all ${
+                  showFilters 
+                     ? 'bg-[#0077B5] border-[#0077B5] text-white' 
+                     : isDark ? 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                }`}
+              >
+                <Filter size={18} />
+                <span className="hidden md:inline">Filter</span>
+                {(dateFrom || dateTo || filterUser) && !showFilters && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white dark:ring-slate-950" />}
+              </button>
+            </div>
           </div>
 
           {showFilters && (
