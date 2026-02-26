@@ -5,7 +5,7 @@ import {
   AlertCircle, CheckCircle2, ChevronDown, ChevronUp, FileText, Truck,
   BarChart3, Ban, Archive, Briefcase, Info, PackagePlus,
   AlertTriangle, Layers, XCircle, ClipboardCheck,
-  Undo2, MessageSquare, AlertOctagon, Box, Lock, LogOut, ChevronsDown, RotateCcw, MoreVertical, CheckSquare, Square
+  Undo2, MessageSquare, AlertOctagon, Box, Lock, LogOut, ChevronsDown, ChevronsUp, RotateCcw, MoreVertical, CheckSquare, Square
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { ReceiptHeader, ReceiptItem, Theme, ReceiptComment, Ticket, PurchaseOrder, ReceiptMaster, DeliveryLog, ActiveModule, StockItem } from '../types';
