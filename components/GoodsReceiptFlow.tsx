@@ -415,7 +415,6 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
   const [newLagerortName, setNewLagerortName] = useState('');
   const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [forceClose, setForceClose] = useState(false);
-  const [isAdminClose, setIsAdminClose] = useState(false);
 
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -561,7 +560,7 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
     const master = receiptMasters.find(m => m.poId === po.id);
     const histMap = new Map<string, number>();
     if (master) master.deliveries.forEach(d => d.items.forEach(it => histMap.set(it.sku, (histMap.get(it.sku) || 0) + it.quantityAccepted)));
-    const useZero = forcedAdmin || isAdminClose;
+    const useZero = forcedAdmin;
     setCardIdx(0);
     setCart(po.items.map(poItem => {
       const inv = existingItems.find(e => e.sku === poItem.sku);
@@ -617,18 +616,7 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
     }
   }, [returnAutoAdvancing, step, cart.length]);
 
-  const handleAdminCloseToggle = (checked: boolean) => {
-    setIsAdminClose(checked);
-    if (checked) {
-      setHeaderData(prev => ({ ...prev, lieferscheinNr: `ABSCHLUSS-${new Date().toISOString().split('T')[0]}`, lieferant: linkedPoId ? (purchaseOrders?.find(p => p.id === linkedPoId)?.supplier || prev.lieferant) : prev.lieferant }));
-      setCart(prev => prev.map(c => ({ ...c, qtyReceived: 0, qtyDamaged: 0, qtyWrong: 0, qtyAccepted: 0, qtyRejected: 0 })));
-      setForceClose(true);
-    } else {
-      setHeaderData(prev => ({ ...prev, lieferscheinNr: prev.lieferscheinNr.startsWith('ABSCHLUSS-') ? '' : prev.lieferscheinNr }));
-      setForceClose(false);
-      if (linkedPoId && purchaseOrders) { const po = purchaseOrders.find(p => p.id === linkedPoId); if (po) handleSelectPO(po, false); }
-    }
-  };
+  
 
   const handleReturnSubmit = () => {
     if (!returnPopup) return;
@@ -1549,15 +1537,7 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
               </div>
             </div>
 
-            {(isPartialDelivery || isAdminClose) && (
-              <div className={`p-4 rounded-xl border flex items-center gap-4 text-left cursor-pointer transition-colors ${forceClose ? (isDark ? 'bg-purple-500/10 border-purple-500/30' : 'bg-purple-50 border-purple-200') : (isDark ? 'bg-slate-800/50 border-slate-700 hover:border-slate-600' : 'bg-white border-slate-200 hover:border-slate-300')}`} onClick={() => setForceClose(!forceClose)}>
-                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${forceClose ? 'bg-purple-600 border-purple-600 text-white' : 'border-slate-400'}`}>{forceClose && <Check size={14} strokeWidth={3} />}</div>
-                <div className="flex-1">
-                  <div className={`font-bold text-sm ${forceClose ? 'text-purple-600 dark:text-purple-400' : ''}`}>Manuell schließen (Restmenge stornieren)</div>
-                  <div className="text-xs opacity-60">Setzt Status auf "Abgeschlossen", auch wenn Offen {'>'} 0.</div>
-                </div>
-              </div>
-            )}
+            
           </div>
         )}
       </div>
