@@ -1106,7 +1106,7 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
                         {/* PLUS/MINUS PICKER */}
                         <div className="flex justify-between items-center gap-3">
                           <span className={labelClass}>Heute geliefert</span>
-                          <<PlusMinusPicker value={line.qtyReceived} onChange={v => updateCartItem(idx, 'qtyReceived', v)} disabled={false} isDark={isDark} />
+                          <PlusMinusPicker value={line.qtyReceived} onChange={v => updateCartItem(idx, 'qtyReceived', v)} disabled={false} isDark={isDark} />
                         </div>
                         {/* Beschädigt Stepper - Always visible */}
                         <div className="flex justify-between items-center gap-3">
