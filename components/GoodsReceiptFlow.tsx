@@ -1106,17 +1106,17 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
                         {/* PLUS/MINUS PICKER */}
                         <div className="flex justify-between items-center gap-3">
                           <span className={labelClass}>Heute geliefert</span>
-                          <PlusMinusPicker value={line.qtyReceived} onChange={v => updateCartItem(idx, 'qtyReceived', v)} disabled={isAdminClose} isDark={isDark} />
+                          <<PlusMinusPicker value={line.qtyReceived} onChange={v => updateCartItem(idx, 'qtyReceived', v)} disabled={false} isDark={isDark} />
                         </div>
                         {/* Beschädigt Stepper - Always visible */}
                         <div className="flex justify-between items-center gap-3">
                           <span className={`text-[10px] uppercase tracking-wider flex items-center gap-1 ${line.qtyDamaged > 0 ? 'text-red-500 font-bold' : (isDark ? 'text-slate-500' : 'text-slate-400')}`}><AlertTriangle size={12}/> Beschädigt</span>
-                          <PlusMinusPicker value={line.qtyDamaged} onChange={v => updateCartItem(idx, 'qtyDamaged', v)} max={line.qtyReceived} disabled={isAdminClose} isDark={isDark} />
+                          <PlusMinusPicker value={line.qtyDamaged} onChange={v => updateCartItem(idx, 'qtyDamaged', v)} max={line.qtyReceived} disabled={false} isDark={isDark} />
                         </div>
                         {/* Falsch Stepper - Always visible */}
                         <div className="flex justify-between items-center gap-3">
                           <span className={`text-[10px] uppercase tracking-wider flex items-center gap-1 ${line.qtyWrong > 0 ? 'text-orange-500 font-bold' : (isDark ? 'text-slate-500' : 'text-slate-400')}`}><XCircle size={12}/> Falsch geliefert</span>
-                          <PlusMinusPicker value={line.qtyWrong} onChange={v => updateCartItem(idx, 'qtyWrong', v)} max={line.qtyReceived - line.qtyDamaged} disabled={isAdminClose} isDark={isDark} />
+                          <PlusMinusPicker value={line.qtyWrong} onChange={v => updateCartItem(idx, 'qtyWrong', v)} max={line.qtyReceived - line.qtyDamaged} disabled={false} isDark={isDark} />
                         </div>
                         {/* Offen - Read-only */}
                         {linkedPoId && c.offen > 0 && (
