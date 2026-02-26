@@ -150,6 +150,9 @@ export interface ReceiptMaster {
   poId: string;
   status: ReceiptMasterStatus;
   deliveries: DeliveryLog[];
+  refusalReason?: string;
+  refusalNotes?: string;
+  refusalDate?: string;
 }
 
 // --- Case Management / Ticketing Types (Phase 4) ---

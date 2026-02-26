@@ -391,12 +391,13 @@ interface GoodsReceiptFlowProps {
   onAddTicket: (ticket: Ticket) => void;
   lagerortOptions?: string[];
   onUpdateLagerortOptions?: (opts: string[]) => void;
+  onRefuseDelivery?: (poId: string, reason: string, notes: string) => void;
 }
 
 export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
   theme, existingItems, onClose, onSuccess, onLogStock, purchaseOrders,
   initialPoId, initialMode = 'standard', receiptMasters = [], ticketConfig, onAddTicket,
-  lagerortOptions: externalLagerortOptions, onUpdateLagerortOptions
+  lagerortOptions: externalLagerortOptions, onUpdateLagerortOptions, onRefuseDelivery
 }) => {
   const isDark = theme === 'dark';
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -426,6 +427,9 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
   const [returnPopup, setReturnPopup] = useState<ReturnPopupData | null>(null);
   const [cardIdx, setCardIdx] = useState(0);
   const [returnAutoAdvancing, setReturnAutoAdvancing] = useState(false);
+  const [showRefuseModal, setShowRefuseModal] = useState(false);
+  const [refuseReason, setRefuseReason] = useState('');
+  const [refuseNotes, setRefuseNotes] = useState('');
 
   // --- LIVE MATH ---
   const getLineCalc = (line: CartItem) => {
@@ -1028,6 +1032,100 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
                 </button>
               )}
             </div>
+
+            {/* REFUSE DELIVERY — only when PO linked and standard mode */}
+            {linkedPoId && initialMode === 'standard' && onRefuseDelivery && (
+              <button
+                onClick={() => setShowRefuseModal(true)}
+                className={`w-full p-4 rounded-xl border-2 border-dashed flex items-center justify-center gap-2 font-bold text-sm transition-all ${
+                  isDark 
+                    ? 'border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50' 
+                    : 'border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300'
+                }`}
+              >
+                <Ban size={18} /> Lieferung ablehnen (Annahmeverweigerung)
+              </button>
+            )}
+
+            {/* REFUSE DELIVERY MODAL */}
+            {showRefuseModal && (
+              <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4" onClick={() => setShowRefuseModal(false)}>
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+                <div className={`relative w-full max-w-md rounded-2xl border shadow-2xl ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`} onClick={e => e.stopPropagation()}>
+                  {/* Header */}
+                  <div className={`p-5 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-xl bg-red-500/10">
+                        <Ban size={22} className="text-red-500" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg">Annahmeverweigerung</h3>
+                        <p className="text-xs opacity-60">Lieferung für {linkedPoId} ablehnen</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Body */}
+                  <div className="p-5 space-y-4">
+                    <div className={`p-3 rounded-xl text-xs ${isDark ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                      <strong>Hinweis:</strong> Es wird kein Wareneingang erstellt. Die Bestellung bleibt offen für eine erneute Lieferung.
+                    </div>
+                    
+                    <div>
+                      <label className={`text-sm font-bold block mb-2 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Grund der Ablehnung *</label>
+                      <select 
+                        value={refuseReason} 
+                        onChange={e => setRefuseReason(e.target.value)}
+                        className={`w-full px-4 py-3 rounded-xl border text-sm ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-300'}`}
+                      >
+                        <option value="">— Bitte wählen —</option>
+                        <option value="Kein Lieferschein">Kein Lieferschein</option>
+                        <option value="Falscher Lieferant">Falscher Lieferant</option>
+                        <option value="Verpackung beschädigt">Verpackung beschädigt</option>
+                        <option value="Falsche Ware">Falsche Ware</option>
+                        <option value="Sonstiges">Sonstiges</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className={`text-sm font-bold block mb-2 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Anmerkungen</label>
+                      <textarea 
+                        value={refuseNotes} 
+                        onChange={e => setRefuseNotes(e.target.value)}
+                        placeholder="Zusätzliche Details zur Ablehnung..."
+                        rows={3}
+                        className={`w-full px-4 py-3 rounded-xl border text-sm resize-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-300'}`}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Footer */}
+                  <div className={`p-5 border-t flex gap-3 ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+                    <button 
+                      onClick={() => { setShowRefuseModal(false); setRefuseReason(''); setRefuseNotes(''); }}
+                      className={`flex-1 py-3 rounded-xl font-bold text-sm ${isDark ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                    >
+                      Abbrechen
+                    </button>
+                    <button 
+                      onClick={() => {
+                        if (linkedPoId && refuseReason && onRefuseDelivery) {
+                          onRefuseDelivery(linkedPoId, refuseReason, refuseNotes);
+                          setShowRefuseModal(false);
+                          setRefuseReason('');
+                          setRefuseNotes('');
+                          onClose();
+                        }
+                      }}
+                      disabled={!refuseReason}
+                      className="flex-1 py-3 rounded-xl font-bold text-sm bg-red-600 text-white hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all"
+                    >
+                      <Ban size={16} /> Ablehnen
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             </div>
         )}

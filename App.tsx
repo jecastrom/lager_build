@@ -556,6 +556,79 @@ export default function App() {
     handleNavigation('create-order');
   };
 
+  const handleDeliveryRefusal = (poId: string, reason: string, notes: string) => {
+    // 1. Update ReceiptMaster status → Abgelehnt + store refusal data
+    setReceiptMasters(prev => prev.map(m => 
+      m.poId === poId ? { ...m, status: 'Abgelehnt' as const, refusalReason: reason, refusalNotes: notes, refusalDate: new Date().toISOString() } : m
+    ));
+
+    // 2. Auto-comment on all linked receipt headers
+    const linkedBatchIds = receiptHeaders.filter(h => h.bestellNr === poId).map(h => h.batchId);
+    const commentText = `📛 **Lieferung abgelehnt — Annahmeverweigerung**\n\n**Grund:** ${reason}${notes ? `\n**Anmerkung:** ${notes}` : ''}\n\nKeine Warenannahme erfolgt. Bestellung bleibt offen.`;
+    linkedBatchIds.forEach(batchId => {
+      handleAddComment(batchId, 'note', commentText);
+    });
+
+    // 3. If no receipt headers exist yet, create a system comment on a placeholder
+    if (linkedBatchIds.length === 0) {
+      // Create a minimal receipt header so the refusal is tracked
+      const refusalBatchId = `ref-${Date.now()}`;
+      const po = purchaseOrders.find(p => p.id === poId);
+      const newHeader: ReceiptHeader = {
+        batchId: refusalBatchId,
+        lieferscheinNr: `ABGELEHNT-${new Date().toISOString().split('T')[0]}`,
+        bestellNr: poId,
+        lieferdatum: new Date().toISOString().split('T')[0],
+        lieferant: po?.supplier || '',
+        status: 'Abgelehnt',
+        timestamp: Date.now(),
+        itemCount: 0,
+        warehouseLocation: '',
+      };
+      setReceiptHeaders(prev => [...prev, newHeader]);
+      handleAddComment(refusalBatchId, 'note', commentText);
+
+      // Create ReceiptMaster if none exists
+      const existingMaster = receiptMasters.find(m => m.poId === poId);
+      if (!existingMaster) {
+        setReceiptMasters(prev => [...prev, {
+          id: `rm-${Date.now()}`,
+          poId,
+          status: 'Abgelehnt' as const,
+          deliveries: [],
+          refusalReason: reason,
+          refusalNotes: notes,
+          refusalDate: new Date().toISOString(),
+        }]);
+      }
+    }
+
+    // 4. Auto-ticket (if ticket automation configured for rejections)
+    if (ticketConfig.autoCreateOnRejection) {
+      const ticket: Ticket = {
+        id: `t-${Date.now()}`,
+        receiptId: linkedBatchIds[0] || `ref-${Date.now()}`,
+        subject: `Annahmeverweigerung — ${poId}`,
+        status: 'Open',
+        priority: 'High',
+        messages: [{
+          id: crypto.randomUUID(),
+          author: 'System',
+          text: `Lieferung für Bestellung ${poId} wurde abgelehnt.\n\n**Grund:** ${reason}${notes ? `\n**Anmerkung:** ${notes}` : ''}`,
+          timestamp: Date.now(),
+          type: 'system',
+        }],
+      };
+      handleAddTicket(ticket);
+    }
+
+    // 5. Audit trail
+    addAudit('Delivery Refused', { po: poId, reason, notes: notes || '—' });
+
+    // 6. Navigate back
+    handleNavigation('receipt-management');
+  };
+
   const handleReceiveGoods = (poId: string, mode: 'standard' | 'return' | 'problem' = 'standard') => {
     if (mode === 'problem') {
       addAudit('Reinspection Started', { po: poId, reason: 'Nachträgliche Korrektur via Problem-Button' });
@@ -1364,6 +1437,7 @@ export default function App() {
                     receiptMasters={receiptMasters}
                     ticketConfig={ticketConfig}
                     onAddTicket={handleAddTicket}
+                    onRefuseDelivery={handleDeliveryRefusal}
                   />
                 )}
 
