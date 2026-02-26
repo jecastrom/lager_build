@@ -1254,7 +1254,7 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
                               <div className="space-y-3">
                                 <div className="flex justify-between items-center gap-3">
                                   <span className={labelClass}>Heute geliefert</span>
-                                  <PlusMinusPicker value={line.qtyReceived} onChange={v => updateCartItem(idx, 'qtyReceived', v)} disabled={isAdminClose} isDark={isDark} />
+                                  <PlusMinusPicker value={line.qtyReceived} onChange={v => updateCartItem(idx, 'qtyReceived', v)} disabled={false} isDark={isDark} />
                                 </div>
                                 <div className="flex justify-between items-center gap-3">
                                   <span className={`text-[10px] uppercase tracking-wider flex items-center gap-1 ${line.qtyDamaged > 0 ? 'text-red-500 font-bold' : (isDark ? 'text-slate-500' : 'text-slate-400')}`}><AlertTriangle size={12}/> Beschädigt</span>
@@ -1343,15 +1343,15 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
                                       <PlusMinusPicker 
                                         value={cartLine.qtyReceived} 
                                         onChange={v => updateCartItem(cartIdx, 'qtyReceived', v)}
-                                        disabled={isAdminClose}
-                                        isDark={isDark}
-                                      />
-                                    </div>
-                                  </td>
-                                  <td className="px-4 py-3 text-center">
-                                    <div className="flex justify-center">
-                                      <PlusMinusPicker 
-                                        value={cartLine.qtyDamaged} 
+                                        disabled={false}
+                isDark={isDark}
+            />
+          </div>
+        </td>
+        <td className="px-4 py-3 text-center">
+          <div className="flex justify-center">
+            <PlusMinusPicker
+              value={cartLine.qtyDamaged} 
                                         onChange={v => updateCartItem(cartIdx, 'qtyDamaged', v)}
                                         disabled={false}
                 isDark={isDark}
