@@ -232,7 +232,65 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
           
           <div className={`rounded-2xl border overflow-hidden ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
-             <div className="overflow-x-auto">
+             {/* MOBILE CARD VIEW */}
+             <div className="md:hidden divide-y divide-slate-500/10">
+               {recentLogs.length === 0 ? (
+                 <div className="p-8 text-center text-slate-500 italic">Keine Aktivitäten verzeichnet.</div>
+               ) : (
+                 recentLogs.map(log => {
+                   const isProject = log.context === 'project' || log.context === 'po-project';
+                   return (
+                     <div key={log.id} className={`p-3.5 ${isDark ? 'active:bg-slate-800/50' : 'active:bg-slate-50'}`}>
+                       <div className="flex items-start gap-3">
+                         {/* Quantity badge */}
+                         <div className={`shrink-0 w-11 h-11 rounded-xl flex flex-col items-center justify-center font-mono font-black text-sm leading-none ${
+                           isProject
+                             ? (isDark ? 'bg-blue-500/15 text-blue-400' : 'bg-blue-50 text-blue-600')
+                             : log.action === 'add'
+                               ? (isDark ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-600')
+                               : (isDark ? 'bg-amber-500/15 text-amber-400' : 'bg-amber-50 text-amber-600')
+                         }`}>
+                           {isProject ? log.quantity : (log.action === 'add' ? `+${log.quantity}` : `-${log.quantity}`)}
+                         </div>
+
+                         {/* Content */}
+                         <div className="flex-1 min-w-0">
+                           <div className={`font-bold text-sm truncate ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{log.itemName}</div>
+                           <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                             {isProject ? (
+                               <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${isDark ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-600'}`}>
+                                 <Briefcase size={10} /> Projekt
+                               </span>
+                             ) : log.context === 'manual' ? (
+                               <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${isDark ? 'bg-slate-700 border-slate-600 text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-500'}`}>
+                                 <MousePointer2 size={10} /> Manuell
+                               </span>
+                             ) : (
+                               <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${isDark ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`}>
+                                 <FileText size={10} /> Regulär
+                               </span>
+                             )}
+                             {log.source && (
+                               <span className="text-[10px] opacity-40 font-mono">via {log.source}</span>
+                             )}
+                           </div>
+                         </div>
+
+                         {/* Timestamp */}
+                         <div className={`shrink-0 text-right font-mono text-[10px] leading-tight opacity-50 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                           {new Date(log.timestamp).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}
+                           <br />
+                           {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                         </div>
+                       </div>
+                     </div>
+                   );
+                 })
+               )}
+             </div>
+
+             {/* DESKTOP TABLE VIEW */}
+             <div className="hidden md:block">
                <table className="w-full text-left text-sm">
                  <thead className={`border-b ${isDark ? 'bg-slate-950 border-slate-800 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
                    <tr>
