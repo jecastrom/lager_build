@@ -428,6 +428,12 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
   const [cardIdx, setCardIdx] = useState(0);
   const [returnAutoAdvancing, setReturnAutoAdvancing] = useState(false);
   const [showRefuseModal, setShowRefuseModal] = useState(false);
+  
+  // Swipe navigation for mobile Step 2
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const isSwiping = useRef(false);
   const [refuseReason, setRefuseReason] = useState('');
   const [refuseNotes, setRefuseNotes] = useState('');
 
@@ -1175,14 +1181,72 @@ export const GoodsReceiptFlow: React.FC<GoodsReceiptFlowProps> = ({
 
               return (
                 <div className="space-y-3">
-                  {/* Mobile position indicator */}
-                  <div className="md:hidden flex items-center justify-center">
+                  {/* Mobile position indicator + swipe dots */}
+                  <div className="md:hidden flex flex-col items-center gap-2">
                     <span className="text-xs font-bold opacity-50">Artikel {idx + 1} von {cart.length}</span>
+                    {cart.length > 1 && cart.length <= 12 && (
+                      <div className="flex items-center gap-1.5">
+                        {cart.map((_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => setCardIdx(i)}
+                            className={`rounded-full transition-all duration-300 ${
+                              i === idx 
+                                ? 'w-6 h-2 bg-[#0077B5]' 
+                                : `w-2 h-2 ${isDark ? 'bg-slate-600' : 'bg-slate-300'}`
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Mobile Card View */}
-                  <div className="md:hidden">
-                    <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-slate-800/40 border-slate-700/50 ring-1 ring-white/[0.02]' : 'bg-white border-slate-200'}`}>
+                  <div 
+                    className="md:hidden touch-pan-y"
+                    onTouchStart={(e) => {
+                      touchStartX.current = e.touches[0].clientX;
+                      touchStartY.current = e.touches[0].clientY;
+                      isSwiping.current = false;
+                    }}
+                    onTouchMove={(e) => {
+                      if (touchStartX.current === null || touchStartY.current === null) return;
+                      const dx = e.touches[0].clientX - touchStartX.current;
+                      const dy = e.touches[0].clientY - touchStartY.current;
+                      // Only swipe if horizontal movement dominates vertical (prevents scroll hijack)
+                      if (!isSwiping.current && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+                        isSwiping.current = true;
+                      }
+                      if (isSwiping.current) {
+                        // Clamp offset and add resistance at edges
+                        const atStart = cardIdx === 0 && dx > 0;
+                        const atEnd = cardIdx >= cart.length - 1 && dx < 0;
+                        const dampened = (atStart || atEnd) ? dx * 0.2 : dx;
+                        setSwipeOffset(Math.max(-120, Math.min(120, dampened)));
+                      }
+                    }}
+                    onTouchEnd={() => {
+                      if (isSwiping.current) {
+                        if (swipeOffset < -50 && cardIdx < cart.length - 1) {
+                          setCardIdx(prev => prev + 1);
+                        } else if (swipeOffset > 50 && cardIdx > 0) {
+                          setCardIdx(prev => prev - 1);
+                        }
+                      }
+                      touchStartX.current = null;
+                      touchStartY.current = null;
+                      isSwiping.current = false;
+                      setSwipeOffset(0);
+                    }}
+                  >
+                    <div 
+                      className={`rounded-xl border overflow-hidden ${isDark ? 'bg-slate-800/40 border-slate-700/50 ring-1 ring-white/[0.02]' : 'bg-white border-slate-200'}`}
+                      style={{ 
+                        transform: `translateX(${swipeOffset}px)`,
+                        transition: swipeOffset === 0 ? 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none',
+                        willChange: 'transform'
+                      }}
+                    >
                       {/* Header */}
                       <div className={`px-4 py-3 border-b flex items-center justify-between ${isDark ? 'border-slate-700' : 'border-slate-100'}`}>
                         <div className="flex-1 min-w-0 mr-3">
